@@ -153,7 +153,7 @@ document.getElementById("copy").addEventListener("click", async e => {
 /* ---------- intro: remove the cracked egg once it has faded ---------- */
 const intro = document.getElementById("intro");
 if (intro) {
-  intro.addEventListener("animationend", e => { if (e.target === intro) intro.remove(); });
+  intro.addEventListener("animationend", e => { if (e.target === intro && e.animationName === "introOut") intro.remove(); });
   setTimeout(() => intro.remove(), 1500); // safety net: never block the site
 }
 
