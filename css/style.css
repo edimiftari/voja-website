@@ -284,3 +284,32 @@ header.top .menu-btn{color:#EBEBDF; border-color:#EBEBDF}
   65%{opacity:1; transform:translate(calc(-50% + var(--dx)*1.28),calc(-50% + var(--dy)*1.28)) scale(.95)}
   85%{opacity:1; transform:translate(calc(-50% + var(--dx)*1.36),calc(-50% + var(--dy)*1.36)) scale(.9)}
   100%{opacity:1; transform:translate(calc(-50% + var(--dx)*1.38),calc(-50% + var(--dy)*1.38)) scale(0)}}
+
+/* ---------- pull-to-refresh egg (phones): pull down to crack it, release to reload ---------- */
+html, body{overscroll-behavior-y:none}
+#ptr{position:fixed; left:50%; top:env(safe-area-inset-top,0px); z-index:50; pointer-events:none;
+  transform:translate(-50%,-64px)}
+#ptr.release{transition:transform .35s cubic-bezier(.2,.9,.3,1.15)}
+#ptr .ptr-egg{position:relative; width:40px; aspect-ratio:470/580; filter:drop-shadow(0 4px 10px rgba(0,0,0,.3))}
+#ptr .ptr-part{position:absolute; inset:0; width:100%; height:100%; display:block; overflow:visible}
+#ptr .ptr-top, #ptr .ptr-bot{visibility:hidden}
+#ptr .ptr-top{clip-path:polygon(0 0,100% 0,100% 53%,84% 47%,68% 56%,52% 46%,36% 56%,20% 47%,0 54%)}
+#ptr .ptr-bot{clip-path:polygon(0 54%,20% 47%,36% 56%,52% 46%,68% 56%,84% 47%,100% 53%,100% 100%,0 100%)}
+#ptr .ptr-crack polyline{fill:none; stroke:#323232; stroke-width:16; stroke-linejoin:round; stroke-linecap:round;
+  stroke-dasharray:1 1; stroke-dashoffset:var(--crack-off,1)}
+#ptr.ready .ptr-egg{animation:ptrShake .18s linear infinite}
+@keyframes ptrShake{0%,100%{transform:rotate(0)}25%{transform:rotate(-4deg)}75%{transform:rotate(4deg)}}
+#ptr.cracked .ptr-egg{animation:none}
+#ptr.cracked .ptr-whole, #ptr.cracked .ptr-crack{visibility:hidden}
+#ptr.cracked .ptr-top, #ptr.cracked .ptr-bot{visibility:visible}
+#ptr.cracked .ptr-top{animation:ptrTop .38s cubic-bezier(.45,0,.55,1) forwards}
+#ptr.cracked .ptr-bot{animation:ptrBot .38s cubic-bezier(.45,0,.55,1) forwards}
+@keyframes ptrTop{to{transform:translate(-30%,-80%) rotate(-28deg)}}
+@keyframes ptrBot{to{transform:translate(20%,70%) rotate(18deg)}}
+@media (prefers-reduced-motion:reduce){
+  #ptr.release{transition:transform .35s cubic-bezier(.2,.9,.3,1.15)!important}
+  #ptr.ready .ptr-egg{animation:ptrShake .18s linear infinite!important}
+  #ptr.cracked .ptr-egg{animation:none!important}
+  #ptr.cracked .ptr-top{animation:ptrTop .38s cubic-bezier(.45,0,.55,1) forwards!important}
+  #ptr.cracked .ptr-bot{animation:ptrBot .38s cubic-bezier(.45,0,.55,1) forwards!important}
+}
