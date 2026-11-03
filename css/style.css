@@ -234,6 +234,7 @@ header.top .menu-btn{color:#EBEBDF; border-color:#EBEBDF}
   #intro{animation:introOut .1s linear .9s forwards!important}
   #intro .curtain{animation:introHole .38s cubic-bezier(.6,0,.9,.45) .6s forwards!important}
   #intro .yolk{animation:yolkFall .55s linear .3s forwards!important}
+  #intro .yolk::after{animation:yolkShadow .3s ease-in .3s forwards!important}
   #intro .drops i{animation:dropFly .32s ease-out .6s forwards!important}
   #intro .shell-wrap{animation:introWobble 1s ease-in-out 0s forwards!important}
   #intro .whole{animation:hideWhole 0s linear .3s forwards!important}
@@ -241,33 +242,38 @@ header.top .menu-btn{color:#EBEBDF; border-color:#EBEBDF}
   #intro .bot{animation:crackBot .5s cubic-bezier(.45,0,.55,1) .3s forwards!important}
 }
 
-/* yolk drops out of the cracked egg and splats open the page */
+/* yolk drops out of the cracked egg (seen from above) and splats open the page */
 @property --hole{syntax:"<length>"; inherits:false; initial-value:0px}
-#intro{--land:32vh}
 #intro .curtain{position:absolute; inset:0; background:#323232;
-  -webkit-mask:radial-gradient(circle at 50% calc(50% + var(--land)), #0000 var(--hole), #000 calc(var(--hole) + .5px));
-          mask:radial-gradient(circle at 50% calc(50% + var(--land)), #0000 var(--hole), #000 calc(var(--hole) + .5px));
+  -webkit-mask:radial-gradient(circle at 50% 50%, #0000 var(--hole), #000 calc(var(--hole) + .5px));
+          mask:radial-gradient(circle at 50% 50%, #0000 var(--hole), #000 calc(var(--hole) + .5px));
   animation:introHole .38s cubic-bezier(.6,0,.9,.45) .6s forwards}
 @keyframes introHole{to{--hole:150vmax}}
 #intro .shell-wrap{z-index:2}
-#intro .yolk{position:absolute; left:50%; top:50%; z-index:3; width:min(9vw,38px); aspect-ratio:1; border-radius:50%;
-  background:#E9631A; opacity:0; transform:translate(-50%,-50%) scale(.4);
+/* top-down: the yolk pops toward you, then drops away (shrinks) onto the page, then splats outward */
+#intro .yolk{position:absolute; left:50%; top:50%; z-index:3; width:min(10vw,42px); aspect-ratio:1; border-radius:50%;
+  background:radial-gradient(circle at 38% 34%, #F59A5E 0 18%, #E9631A 46%, #C84E0E 100%);
+  opacity:0; transform:translate(-50%,-50%) scale(.4);
   animation:yolkFall .55s linear .3s forwards}
+#intro .yolk::after{content:""; position:absolute; inset:-30%; border-radius:50%; z-index:-1;
+  background:radial-gradient(circle, rgba(0,0,0,.35), transparent 65%); opacity:0;
+  animation:yolkShadow .3s ease-in .3s forwards}
+@keyframes yolkShadow{to{opacity:1; inset:-8%}}
 @keyframes yolkFall{
   0%{opacity:0; transform:translate(-50%,-50%) scale(.4); animation-timing-function:ease-out}
   6%{opacity:1}
-  15%{opacity:1; transform:translate(-50%,-38%) scale(1); animation-timing-function:cubic-bezier(.5,0,1,1)}
-  55%{opacity:1; transform:translate(-50%,calc(-50% + 32vh)) scale(.9,1.15); animation-timing-function:ease-out}
-  64%{opacity:1; transform:translate(-50%,calc(-50% + 32vh)) scale(1.8,.42)}
-  100%{opacity:0; transform:translate(-50%,calc(-50% + 32vh)) scale(3.4,.5)}}
-#intro .drops{position:absolute; left:50%; top:calc(50% + 32vh); z-index:1}
+  16%{opacity:1; transform:translate(-50%,-50%) scale(1.2); animation-timing-function:cubic-bezier(.5,0,1,1)}
+  55%{opacity:1; transform:translate(-50%,-50%) scale(.72); border-radius:50%; animation-timing-function:ease-out}
+  66%{opacity:1; transform:translate(-50%,-50%) scale(1.9); border-radius:46% 54% 42% 58% / 55% 44% 56% 45%}
+  100%{opacity:0; transform:translate(-50%,-50%) scale(3.6); border-radius:52% 48% 57% 43% / 44% 58% 42% 56%}}
+#intro .drops{position:absolute; left:50%; top:50%; z-index:1}
 #intro .drops i{position:absolute; left:0; top:0; width:7px; height:7px; border-radius:50%; background:#E9631A; opacity:0;
   transform:translate(-50%,-50%); animation:dropFly .32s ease-out .6s forwards}
-#intro .drops i:nth-child(1){--dx:-64px; --dy:-30px}
-#intro .drops i:nth-child(2){--dx:-34px; --dy:-52px; width:5px; height:5px}
-#intro .drops i:nth-child(3){--dx:8px;   --dy:-60px; width:4px; height:4px}
-#intro .drops i:nth-child(4){--dx:40px;  --dy:-46px; width:6px; height:6px}
-#intro .drops i:nth-child(5){--dx:70px;  --dy:-22px}
-#intro .drops i:nth-child(6){--dx:-82px; --dy:-6px; width:4px; height:4px}
+#intro .drops i:nth-child(1){--dx:-74px; --dy:-18px}
+#intro .drops i:nth-child(2){--dx:-30px; --dy:-70px; width:5px; height:5px}
+#intro .drops i:nth-child(3){--dx:44px;  --dy:-60px; width:4px; height:4px}
+#intro .drops i:nth-child(4){--dx:78px;  --dy:10px;  width:6px; height:6px}
+#intro .drops i:nth-child(5){--dx:26px;  --dy:70px}
+#intro .drops i:nth-child(6){--dx:-52px; --dy:56px;  width:4px; height:4px}
 @keyframes dropFly{0%{opacity:1; transform:translate(-50%,-50%) scale(.6)}
   100%{opacity:0; transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1)}}
