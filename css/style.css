@@ -265,18 +265,18 @@ header.top .menu-btn{color:#EBEBDF; border-color:#EBEBDF}
   5%{opacity:1}
   12%{opacity:1; width:50px; height:50px; animation-timing-function:cubic-bezier(.5,0,1,1)}
   43%{opacity:1; width:30px; height:30px; border-radius:50%; animation-timing-function:cubic-bezier(.2,.9,.3,1)}
-  53%{opacity:1; width:56px; height:50px; border-radius:58% 42% 55% 45% / 46% 56% 44% 54%; animation-timing-function:ease-in-out}
-  65%{opacity:1; width:70px; height:72px; border-radius:44% 56% 47% 53% / 57% 43% 58% 42%; animation-timing-function:ease-in-out}
-  78%{opacity:1; width:62px; height:61px; border-radius:53% 47% 58% 42% / 45% 55% 46% 54%; animation-timing-function:ease-in-out}
-  88%{opacity:1; width:66px; height:64px; border-radius:49% 51% 52% 48% / 52% 48% 51% 49%}
+  53%{opacity:1; width:45px; height:40px; border-radius:58% 42% 55% 45% / 46% 56% 44% 54%; animation-timing-function:ease-in-out}
+  65%{opacity:1; width:56px; height:58px; border-radius:44% 56% 47% 53% / 57% 43% 58% 42%; animation-timing-function:ease-in-out}
+  78%{opacity:1; width:50px; height:49px; border-radius:53% 47% 58% 42% / 45% 55% 46% 54%; animation-timing-function:ease-in-out}
+  88%{opacity:1; width:53px; height:51px; border-radius:49% 51% 52% 48% / 52% 48% 51% 49%}
   100%{opacity:1; width:0px; height:0px; border-radius:50%}}
 /* droplets are flung out of the puddle's edge on liquid strands, snap off into separate pieces, then soak into the page */
 #intro .splash i{width:var(--s,18px); height:var(--s,18px); background:#EC6E22; opacity:0;
   transform:translate(-50%,-50%); animation:dropSplash .37s cubic-bezier(.2,.7,.35,1) .61s forwards}
-#intro .splash i:nth-child(2){--dx:-54px; --dy:-12px; --s:19px}
-#intro .splash i:nth-child(5){--dx:40px;  --dy:-40px; --s:17px}
-#intro .splash i:nth-child(7){--dx:30px;  --dy:48px;  --s:20px}
-#intro .splash i:nth-child(9){--dx:-40px; --dy:40px;  --s:16px}
+#intro .splash i:nth-child(2){--dx:-43px; --dy:-10px; --s:15px}
+#intro .splash i:nth-child(5){--dx:32px;  --dy:-32px; --s:14px}
+#intro .splash i:nth-child(7){--dx:24px;  --dy:38px;  --s:16px}
+#intro .splash i:nth-child(9){--dx:-32px; --dy:32px;  --s:13px}
 #intro .splash i:nth-child(3), #intro .splash i:nth-child(4), #intro .splash i:nth-child(6), #intro .splash i:nth-child(8){display:none}
 @keyframes dropSplash{
   0%{opacity:1; transform:translate(calc(-50% + var(--dx)*.3),calc(-50% + var(--dy)*.3)) scale(.6)}
