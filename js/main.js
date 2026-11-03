@@ -170,6 +170,99 @@ addEventListener("hashchange", route);
   addEventListener("touchcancel", end);
 })();
 
+/* ---------- the egg that watches you ---------- */
+(function () {
+  const mark = document.querySelector(".hero .mark"), watch = mark && mark.querySelector(".watch");
+  if (!watch) return;
+  let tx = 0, ty = 0, x = 0, y = 0, lastInput = 0, visible = true;
+  const clamp = v => Math.max(-1, Math.min(1, v));
+  addEventListener("pointermove", e => {
+    if (e.pointerType === "touch") return;
+    const r = watch.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    tx = clamp((e.clientX - cx) / (innerWidth * 0.45)); ty = clamp((e.clientY - cy) / (innerHeight * 0.45));
+    lastInput = performance.now();
+  }, { passive: true });
+  addEventListener("deviceorientation", e => {          // phones: follow how the phone is tilted
+    if (e.gamma == null) return;
+    tx = clamp(e.gamma / 30); ty = clamp(((e.beta || 45) - 45) / 30);
+    lastInput = performance.now();
+  }, { passive: true });
+  new IntersectionObserver(es => { visible = es[0].isIntersecting; if (visible) requestAnimationFrame(look); }).observe(watch);
+  function look(now) {
+    if (!visible) return;
+    if (now - lastInput > 2500) {                         // nobody around: look about on its own
+      const t = now / 1000; tx = 0.55 * Math.sin(t * 0.5) * Math.cos(t * 0.17); ty = 0.35 * Math.sin(t * 0.31 + 1);
+    }
+    x += (tx - x) * 0.08; y += (ty - y) * 0.08;
+    watch.style.transform = `perspective(700px) translate(${x * 6}px, ${y * 4}px) rotateY(${x * 16}deg) rotateX(${-y * 12}deg) rotate(${x * 4}deg)`;
+    requestAnimationFrame(look);
+  }
+  requestAnimationFrame(look);
+})();
+
+/* ---------- the hidden yolk: tap the egg 5 times ---------- */
+(function () {
+  const mark = document.querySelector(".hero .mark");
+  if (!mark) return;
+  const tap = mark.querySelector(".tap"), top = mark.querySelector(".h-top"), egg = mark.querySelector(".egg");
+  const TAPS = 5;
+  let taps = 0, resetT = 0, busy = false;
+  const setCrack = n => mark.style.setProperty("--crack-off", String(n ? 1 - 0.2 * n : 1));
+  mark.addEventListener("click", () => {
+    if (busy) return;
+    clearTimeout(resetT);
+    taps++;
+    tap.animate([{ transform: "scale(1)" }, { transform: "scale(1.06,.93)" }, { transform: "scale(.98,1.03)" }, { transform: "scale(1)" }],
+      { duration: 260, easing: "ease-out" });
+    if (taps < TAPS) { setCrack(taps); resetT = setTimeout(() => { taps = 0; setCrack(0); }, 2500); return; }
+    // 5th tap: the lid pops, the yolk drops out and splashes onto the page
+    busy = true; taps = 0; setCrack(4); mark.classList.add("open");
+    top.animate([{ transform: "none" }, { transform: "translate(-6%,-34%) rotate(-24deg)", offset: .35 },
+      { transform: "translate(-6%,-34%) rotate(-24deg)", offset: .75 }, { transform: "none" }],
+      { duration: 1500, easing: "cubic-bezier(.3,.7,.3,1)" });
+    dropYolk();
+    setTimeout(() => { mark.classList.remove("open"); setCrack(0); busy = false; }, 1520);
+  });
+
+  function dropYolk() {
+    const r = egg.getBoundingClientRect();
+    const sx = r.left + r.width * 0.5 + scrollX, sy = r.top + r.height * 0.5 + scrollY;
+    const fall = Math.min(260, Math.max(140, innerHeight * 0.28));
+    const drift = (Math.random() - 0.5) * 60;
+    const el = document.createElement("div"); el.className = "yolk-splat";
+    el.innerHTML = '<div class="puddle"></div>' + "<i></i>".repeat(4);
+    el.style.left = (sx - 120) + "px"; el.style.top = (sy - 120) + "px";
+    document.body.appendChild(el);
+    const FALL = 460;
+    // the yolk pops out, then falls with gravity
+    el.animate([{ transform: "translate(0,0)" }, { transform: `translate(${drift * 0.3}px,-18px)`, offset: .2, easing: "cubic-bezier(.5,0,1,1)" },
+      { transform: `translate(${drift}px,${fall}px)` }], { duration: FALL, fill: "forwards" });
+    const puddle = el.querySelector(".puddle");
+    // lands and spreads into a wobbling puddle (seen at a slight angle, so a little wider than tall)
+    puddle.animate([{ width: "24px", height: "24px" }, { width: "24px", height: "26px", offset: .5 },
+      { width: "60px", height: "34px", borderRadius: "58% 42% 55% 45% / 46% 56% 44% 54%", offset: .62 },
+      { width: "72px", height: "44px", borderRadius: "44% 56% 47% 53% / 57% 43% 58% 42%", offset: .76 },
+      { width: "64px", height: "39px", borderRadius: "53% 47% 58% 42% / 45% 55% 46% 54%", offset: .88 },
+      { width: "66px", height: "40px", borderRadius: "49% 51% 52% 48% / 52% 48% 51% 49%" }],
+      { duration: FALL * 2, easing: "ease-out", fill: "forwards" });
+    const drops = [[-46, -10, 15], [38, -16, 13], [26, 18, 16], [-34, 16, 12]];
+    el.querySelectorAll("i").forEach((d, k) => {
+      const [dx, dy, s] = drops[k]; d.style.setProperty("--s", s + "px");
+      d.animate([{ opacity: 1, transform: `translate(calc(-50% + ${dx * .3}px), calc(-50% + ${dy * .3}px)) scale(.6)` },
+        { opacity: 1, transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(1)`, offset: .45 },
+        { opacity: 1, transform: `translate(calc(-50% + ${dx * 1.3}px), calc(-50% + ${dy * 1.3}px)) scale(.85)` }],
+        { delay: FALL + 10, duration: 380, easing: "cubic-bezier(.2,.7,.35,1)", fill: "forwards" });
+    });
+    // tap the puddle to wipe it away
+    puddle.addEventListener("click", () => {
+      el.animate([{ transform: getComputedStyle(el).transform }, { transform: `translate(${drift}px,${fall}px) scale(0)` }],
+        { duration: 300, easing: "ease-in", fill: "forwards" })
+        .finished.then(() => el.remove());
+    });
+    const all = document.querySelectorAll(".yolk-splat"); if (all.length > 5) all[0].remove(); // keep at most 5 on the page
+  }
+})();
+
 /* ---------- phone menu ---------- */
 const hdr = document.querySelector("header.top"), mb = document.getElementById("menu-btn");
 function setMenu(open) { hdr.classList.toggle("open", open); mb.setAttribute("aria-expanded", open); document.getElementById("menu-txt").textContent = open ? "Close" : "Menu"; }
