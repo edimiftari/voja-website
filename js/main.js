@@ -155,9 +155,11 @@ addEventListener("hashchange", route);
   addEventListener("touchmove", e => {
     if (startY === null) return;
     const dy = e.touches[0].clientY - startY;
-    pull = dy > 0 && scrollY <= 0 ? Math.min(MAX, dy * 0.55) : 0;
+    // while the finger is below where it started, the egg follows it both ways and the page stays put
+    if (dy > 0) { if (e.cancelable) e.preventDefault(); pull = Math.min(MAX, dy * 0.55); }
+    else pull = 0;
     show(pull);
-  }, { passive: true });
+  }, { passive: false });
   const end = () => {
     if (startY === null) return;
     startY = null;
