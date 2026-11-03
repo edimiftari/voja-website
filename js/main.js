@@ -154,7 +154,7 @@ document.getElementById("copy").addEventListener("click", async e => {
 const intro = document.getElementById("intro");
 if (intro) {
   intro.addEventListener("animationend", e => { if (e.target === intro) intro.remove(); });
-  setTimeout(() => intro.remove(), 2500); // safety net: never block the site
+  setTimeout(() => intro.remove(), 1500); // safety net: never block the site
 }
 
 /* ---------- init ---------- */
