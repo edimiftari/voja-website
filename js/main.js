@@ -227,16 +227,23 @@ addEventListener("hashchange", route);
   function dropYolk() {
     const r = egg.getBoundingClientRect();
     const sx = r.left + r.width * 0.5 + scrollX, sy = r.top + r.height * 0.5 + scrollY;
-    const fall = Math.min(260, Math.max(140, innerHeight * 0.28));
-    const drift = (Math.random() - 0.5) * 60;
+    // land somewhere random on the visible page below the egg, anywhere left to right
+    const vw = document.documentElement.clientWidth, vh = (window.visualViewport && visualViewport.height) || document.documentElement.clientHeight;
+    const m = 50, top0 = Math.min(vh - 120, r.bottom + 30);
+    const lx = m + Math.random() * (vw - 2 * m), ly = top0 + Math.random() * Math.max(40, vh - 70 - top0);
+    const dx = lx + scrollX - sx, dy = ly + scrollY - sy;
     const el = document.createElement("div"); el.className = "yolk-splat";
     el.innerHTML = '<div class="puddle"></div>' + "<i></i>".repeat(4);
     el.style.left = (sx - 120) + "px"; el.style.top = (sy - 120) + "px";
     document.body.appendChild(el);
-    const FALL = 460;
-    // the yolk pops out, then falls with gravity
-    el.animate([{ transform: "translate(0,0)" }, { transform: `translate(${drift * 0.3}px,-18px)`, offset: .2, easing: "cubic-bezier(.5,0,1,1)" },
-      { transform: `translate(${drift}px,${fall}px)` }], { duration: FALL, fill: "forwards" });
+    const FALL = Math.round(Math.min(820, 380 + Math.hypot(dx, dy) * 0.55));
+    // the yolk pops up out of the egg and arcs down with gravity to where it lands
+    const h = 40, a = 2 * h + 2 * Math.sqrt(h * h + h * Math.max(0, dy));
+    const arc = Array.from({ length: 13 }, (_, k) => {
+      const t = k / 12;
+      return { transform: `translate(${dx * t}px, ${-a * t + (dy + a) * t * t}px)` };
+    });
+    el.animate(arc, { duration: FALL, easing: "linear", fill: "forwards" });
     const puddle = el.querySelector(".puddle");
     // lands and spreads into a wobbling puddle (seen at a slight angle, so a little wider than tall)
     puddle.animate([{ width: "24px", height: "24px" }, { width: "24px", height: "26px", offset: .5 },
@@ -255,7 +262,7 @@ addEventListener("hashchange", route);
     });
     // tap the puddle to wipe it away
     puddle.addEventListener("click", () => {
-      el.animate([{ transform: getComputedStyle(el).transform }, { transform: `translate(${drift}px,${fall}px) scale(0)` }],
+      el.animate([{ transform: getComputedStyle(el).transform }, { transform: `translate(${dx}px,${dy}px) scale(0)` }],
         { duration: 300, easing: "ease-in", fill: "forwards" })
         .finished.then(() => el.remove());
     });
