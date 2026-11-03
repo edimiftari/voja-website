@@ -232,48 +232,57 @@ header.top .menu-btn{color:#EBEBDF; border-color:#EBEBDF}
 @keyframes introOut{to{opacity:0; visibility:hidden}}
 @media (prefers-reduced-motion:reduce){
   #intro{animation:introOut .1s linear .9s forwards!important}
-  #intro .curtain{animation:introHole .38s cubic-bezier(.6,0,.9,.45) .6s forwards!important}
-  #intro .yolk{animation:yolkFall .55s linear .3s forwards!important}
-  #intro .yolk::after{animation:yolkShadow .3s ease-in .3s forwards!important}
-  #intro .drops i{animation:dropFly .32s ease-out .6s forwards!important}
+  #intro .curtain{animation:introHole .38s cubic-bezier(.6,0,.9,.45) .62s forwards!important}
+  #intro .yolk{animation:yolkFall .7s linear .3s forwards!important}
+  #intro .splash i{animation:dropSplash .37s cubic-bezier(.2,.7,.35,1) .61s forwards!important}
   #intro .shell-wrap{animation:introWobble 1s ease-in-out 0s forwards!important}
   #intro .whole{animation:hideWhole 0s linear .3s forwards!important}
   #intro .top{animation:crackTop .5s cubic-bezier(.45,0,.55,1) .3s forwards!important}
   #intro .bot{animation:crackBot .5s cubic-bezier(.45,0,.55,1) .3s forwards!important}
 }
 
-/* yolk drops out of the cracked egg (seen from above) and splats open the page */
+/* yolk drops out of the cracked egg (seen from above) and splashes open the page like liquid */
 @property --hole{syntax:"<length>"; inherits:false; initial-value:0px}
 #intro .curtain{position:absolute; inset:0; background:#323232;
   -webkit-mask:radial-gradient(circle at 50% 50%, #0000 var(--hole), #000 calc(var(--hole) + .5px));
           mask:radial-gradient(circle at 50% 50%, #0000 var(--hole), #000 calc(var(--hole) + .5px));
-  animation:introHole .38s cubic-bezier(.6,0,.9,.45) .6s forwards}
+  animation:introHole .38s cubic-bezier(.6,0,.9,.45) .62s forwards}
 @keyframes introHole{to{--hole:150vmax}}
 #intro .shell-wrap{z-index:2}
-/* top-down: the yolk pops toward you, then drops away (shrinks) onto the page, then splats outward */
-#intro .yolk{position:absolute; left:50%; top:50%; z-index:3; width:min(10vw,42px); aspect-ratio:1; border-radius:50%;
-  background:radial-gradient(circle at 38% 34%, #F59A5E 0 18%, #E9631A 46%, #C84E0E 100%);
-  opacity:0; transform:translate(-50%,-50%) scale(.4);
-  animation:yolkFall .55s linear .3s forwards}
-#intro .yolk::after{content:""; position:absolute; inset:-30%; border-radius:50%; z-index:-1;
-  background:radial-gradient(circle, rgba(0,0,0,.35), transparent 65%); opacity:0;
-  animation:yolkShadow .3s ease-in .3s forwards}
-@keyframes yolkShadow{to{opacity:1; inset:-8%}}
+#intro .goo-defs{position:absolute; width:0; height:0}
+/* the "goo" filter melts the yolk and its droplets together so they read as one liquid */
+#intro .splash{position:absolute; left:50%; top:50%; z-index:3; width:320px; height:320px;
+  transform:translate(-50%,-50%); filter:url(#goo)}
+#intro .splash > *{position:absolute; left:50%; top:50%; border-radius:50%}
+/* top-down: the yolk pops toward you, drops away (shrinks) onto the page, then spreads into a wobbling puddle.
+   Size is animated (not scaled) so the small glossy highlight stays small and the puddle looks flat and wet. */
+#intro .yolk{width:42px; height:42px; opacity:0; transform:translate(-50%,-50%);
+  background:radial-gradient(circle at 36% 32%, rgba(255,222,186,.9) 0 3px, rgba(255,222,186,0) 9px),
+             radial-gradient(circle at 50% 50%, #EC6E22 62%, #D2521A 100%);
+  animation:yolkFall .7s linear .3s forwards}
 @keyframes yolkFall{
-  0%{opacity:0; transform:translate(-50%,-50%) scale(.4); animation-timing-function:ease-out}
-  6%{opacity:1}
-  16%{opacity:1; transform:translate(-50%,-50%) scale(1.2); animation-timing-function:cubic-bezier(.5,0,1,1)}
-  55%{opacity:1; transform:translate(-50%,-50%) scale(.72); border-radius:50%; animation-timing-function:ease-out}
-  66%{opacity:1; transform:translate(-50%,-50%) scale(1.9); border-radius:46% 54% 42% 58% / 55% 44% 56% 45%}
-  100%{opacity:0; transform:translate(-50%,-50%) scale(3.6); border-radius:52% 48% 57% 43% / 44% 58% 42% 56%}}
-#intro .drops{position:absolute; left:50%; top:50%; z-index:1}
-#intro .drops i{position:absolute; left:0; top:0; width:7px; height:7px; border-radius:50%; background:#E9631A; opacity:0;
-  transform:translate(-50%,-50%); animation:dropFly .32s ease-out .6s forwards}
-#intro .drops i:nth-child(1){--dx:-74px; --dy:-18px}
-#intro .drops i:nth-child(2){--dx:-30px; --dy:-70px; width:5px; height:5px}
-#intro .drops i:nth-child(3){--dx:44px;  --dy:-60px; width:4px; height:4px}
-#intro .drops i:nth-child(4){--dx:78px;  --dy:10px;  width:6px; height:6px}
-#intro .drops i:nth-child(5){--dx:26px;  --dy:70px}
-#intro .drops i:nth-child(6){--dx:-52px; --dy:56px;  width:4px; height:4px}
-@keyframes dropFly{0%{opacity:1; transform:translate(-50%,-50%) scale(.6)}
-  100%{opacity:0; transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1)}}
+  0%{opacity:0; width:18px; height:18px; animation-timing-function:ease-out}
+  5%{opacity:1}
+  12%{opacity:1; width:50px; height:50px; animation-timing-function:cubic-bezier(.5,0,1,1)}
+  43%{opacity:1; width:30px; height:30px; border-radius:50%; animation-timing-function:cubic-bezier(.2,.9,.3,1)}
+  53%{opacity:1; width:100px; height:88px; border-radius:58% 42% 55% 45% / 46% 56% 44% 54%; animation-timing-function:ease-in-out}
+  65%{opacity:1; width:124px; height:128px; border-radius:44% 56% 47% 53% / 57% 43% 58% 42%; animation-timing-function:ease-in-out}
+  78%{opacity:1; width:110px; height:108px; border-radius:53% 47% 58% 42% / 45% 55% 46% 54%; animation-timing-function:ease-in-out}
+  88%{opacity:1; width:116px; height:113px; border-radius:49% 51% 52% 48% / 52% 48% 51% 49%}
+  100%{opacity:0; width:118px; height:115px; border-radius:50%}}
+/* droplets are flung out of the puddle's edge, stay joined to it by liquid strands, then break off and settle */
+#intro .splash i{width:var(--s,18px); height:var(--s,18px); background:#EC6E22; opacity:0;
+  transform:translate(-50%,-50%); animation:dropSplash .37s cubic-bezier(.2,.7,.35,1) .61s forwards}
+#intro .splash i:nth-child(2){--dx:-84px; --dy:-14px; --s:32px}
+#intro .splash i:nth-child(3){--dx:-46px; --dy:-72px; --s:26px}
+#intro .splash i:nth-child(4){--dx:14px;  --dy:-86px; --s:22px}
+#intro .splash i:nth-child(5){--dx:68px;  --dy:-56px; --s:30px}
+#intro .splash i:nth-child(6){--dx:90px;  --dy:10px;  --s:26px}
+#intro .splash i:nth-child(7){--dx:50px;  --dy:74px;  --s:34px}
+#intro .splash i:nth-child(8){--dx:-10px; --dy:90px;  --s:22px}
+#intro .splash i:nth-child(9){--dx:-72px; --dy:60px;  --s:28px}
+@keyframes dropSplash{
+  0%{opacity:1; transform:translate(calc(-50% + var(--dx)*.3),calc(-50% + var(--dy)*.3)) scale(.6)}
+  55%{opacity:1; transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1)}
+  80%{opacity:1; transform:translate(calc(-50% + var(--dx)*1.04),calc(-50% + var(--dy)*1.04)) scale(.75)}
+  100%{opacity:0; transform:translate(calc(-50% + var(--dx)*1.06),calc(-50% + var(--dy)*1.06)) scale(.55)}}
