@@ -261,9 +261,16 @@ addEventListener("hashchange", route);
         { delay: FALL + 10, duration: 380, easing: "cubic-bezier(.2,.7,.35,1)", fill: "forwards" });
     });
     // tap the puddle to wipe it away
+    // tap the puddle to wipe it away: a quick swipe smears it sideways and it's gone
     puddle.addEventListener("click", () => {
-      el.animate([{ transform: getComputedStyle(el).transform }, { transform: `translate(${dx}px,${dy}px) scale(0)` }],
-        { duration: 300, easing: "ease-in", fill: "forwards" })
+      if (el.dataset.wiping) return; el.dataset.wiping = "1";
+      const dir = Math.random() < 0.5 ? -1 : 1, at = `translate(${dx}px,${dy}px)`;
+      el.animate([
+        { transform: at },
+        { transform: `${at} translateX(${dir * 16}px) scale(1.6,.7)`, offset: .3 },
+        { transform: `${at} translateX(${dir * 42}px) scale(2,.4)`, offset: .65 },
+        { transform: `${at} translateX(${dir * 95}px) scale(.1,.12)` }],
+        { duration: 300, easing: "cubic-bezier(.4,0,.8,.6)", fill: "forwards" })
         .finished.then(() => el.remove());
     });
     const all = document.querySelectorAll(".yolk-splat"); if (all.length > 5) all[0].remove(); // keep at most 5 on the page
