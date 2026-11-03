@@ -135,6 +135,39 @@ document.getElementById("close").onclick = () => closeProject();
 addEventListener("keydown", e => { if (e.key === "Escape") closeProject(); });
 addEventListener("hashchange", route);
 
+/* ---------- pull-to-refresh egg (touch screens) ---------- */
+(function () {
+  const ptr = document.getElementById("ptr");
+  if (!ptr || !("ontouchstart" in window)) return;
+  const READY = 90, MAX = 130; // pixels of pull needed to crack, and the most it travels
+  let startY = null, pull = 0;
+  const show = p => {
+    const k = Math.min(p / READY, 1);
+    ptr.style.transform = `translate(-50%, ${-64 + p}px) rotate(${-10 * k}deg)`;
+    ptr.style.setProperty("--crack-off", String(1 - k));
+    ptr.classList.toggle("ready", p >= READY);
+  };
+  addEventListener("touchstart", e => {
+    startY = null;
+    if (scrollY > 0 || e.touches.length > 1 || document.getElementById("intro") || !ov.hidden || ptr.classList.contains("cracked")) return;
+    startY = e.touches[0].clientY; pull = 0; ptr.classList.remove("release");
+  }, { passive: true });
+  addEventListener("touchmove", e => {
+    if (startY === null) return;
+    const dy = e.touches[0].clientY - startY;
+    pull = dy > 0 && scrollY <= 0 ? Math.min(MAX, dy * 0.55) : 0;
+    show(pull);
+  }, { passive: true });
+  const end = () => {
+    if (startY === null) return;
+    startY = null;
+    if (pull >= READY) { ptr.classList.remove("ready"); ptr.classList.add("cracked"); setTimeout(() => location.reload(), 380); }
+    else { ptr.classList.add("release"); pull = 0; show(0); }
+  };
+  addEventListener("touchend", end);
+  addEventListener("touchcancel", end);
+})();
+
 /* ---------- phone menu ---------- */
 const hdr = document.querySelector("header.top"), mb = document.getElementById("menu-btn");
 function setMenu(open) { hdr.classList.toggle("open", open); mb.setAttribute("aria-expanded", open); document.getElementById("menu-txt").textContent = open ? "Close" : "Menu"; }
