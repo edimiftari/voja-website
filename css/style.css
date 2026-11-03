@@ -207,3 +207,8 @@ header.top .menu-btn{color:#EBEBDF; border-color:#EBEBDF}
 .card .play{position:absolute; left:14px; bottom:14px; width:44px; height:44px; border-radius:50%; background:#E9631A; display:grid; place-items:center; box-shadow:0 6px 18px rgba(0,0,0,.18); transition:transform .3s}
 .card .play svg{width:18px; height:18px; fill:#fff; margin-left:2px}
 .card:hover .play{transform:scale(1.08)}
+/* Keep the two signature animations (egg wobble, rotating copyright seal) even when "reduce motion" is on */
+@media (prefers-reduced-motion:reduce){
+  .hero .mark svg{animation:rock 5s ease-in-out 1s infinite!important}
+  .seal .ring{animation:spin 40s linear infinite!important}
+}
