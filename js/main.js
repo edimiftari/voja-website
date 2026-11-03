@@ -150,6 +150,13 @@ document.getElementById("copy").addEventListener("click", async e => {
   setTimeout(() => b.textContent = "Copy email", 2200);
 });
 
+/* ---------- intro: remove the cracked egg once it has faded ---------- */
+const intro = document.getElementById("intro");
+if (intro) {
+  intro.addEventListener("animationend", e => { if (e.target === intro) intro.remove(); });
+  setTimeout(() => intro.remove(), 2500); // safety net: never block the site
+}
+
 /* ---------- init ---------- */
 let rt; addEventListener("resize", () => {
   clearTimeout(rt);
