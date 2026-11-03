@@ -214,8 +214,8 @@ header.top .menu-btn{color:#EBEBDF; border-color:#EBEBDF}
 }
 
 /* ---------- intro: the egg cracks open, then the site appears ---------- */
-#intro{position:fixed; inset:0; z-index:100; background:#323232; display:grid; place-items:center; pointer-events:none;
-  animation:introOut .3s ease-out .7s forwards}
+#intro{position:fixed; inset:0; z-index:100; display:grid; place-items:center; pointer-events:none;
+  animation:introOut .1s linear .9s forwards}
 #intro .shell-wrap{position:relative; width:min(30vw,128px); aspect-ratio:470/580; transform-origin:50% 90%;
   animation:introWobble 1s ease-in-out 0s forwards}
 #intro .half{position:absolute; inset:0}
@@ -223,17 +223,51 @@ header.top .menu-btn{color:#EBEBDF; border-color:#EBEBDF}
 @keyframes hideWhole{to{visibility:hidden}}
 #intro .half svg{width:100%; height:100%; display:block; overflow:visible}
 #intro .top{clip-path:polygon(0 0,100% 0,100% 53%,84% 47%,68% 56%,52% 46%,36% 56%,20% 47%,0 54%);
-  animation:crackTop .55s cubic-bezier(.45,0,.55,1) .3s forwards}
+  animation:crackTop .5s cubic-bezier(.45,0,.55,1) .3s forwards}
 #intro .bot{clip-path:polygon(0 54%,20% 47%,36% 56%,52% 46%,68% 56%,84% 47%,100% 53%,100% 100%,0 100%);
-  animation:crackBot .55s cubic-bezier(.45,0,.55,1) .3s forwards}
+  animation:crackBot .5s cubic-bezier(.45,0,.55,1) .3s forwards}
 @keyframes introWobble{0%{transform:rotate(0)}12%{transform:rotate(-8deg)}30%{transform:rotate(6deg)}55%{transform:rotate(-3deg)}100%{transform:rotate(0)}}
 @keyframes crackTop{0%{transform:none}100%{transform:translate(-18%,-70%) rotate(-24deg); opacity:0}}
 @keyframes crackBot{0%{transform:none}100%{transform:translate(10%,55%) rotate(14deg); opacity:0}}
 @keyframes introOut{to{opacity:0; visibility:hidden}}
 @media (prefers-reduced-motion:reduce){
-  #intro{animation:introOut .3s ease-out .7s forwards!important}
+  #intro{animation:introOut .1s linear .9s forwards!important}
+  #intro .curtain{animation:introHole .38s cubic-bezier(.6,0,.9,.45) .6s forwards!important}
+  #intro .yolk{animation:yolkFall .55s linear .3s forwards!important}
+  #intro .drops i{animation:dropFly .32s ease-out .6s forwards!important}
   #intro .shell-wrap{animation:introWobble 1s ease-in-out 0s forwards!important}
   #intro .whole{animation:hideWhole 0s linear .3s forwards!important}
-  #intro .top{animation:crackTop .55s cubic-bezier(.45,0,.55,1) .3s forwards!important}
-  #intro .bot{animation:crackBot .55s cubic-bezier(.45,0,.55,1) .3s forwards!important}
+  #intro .top{animation:crackTop .5s cubic-bezier(.45,0,.55,1) .3s forwards!important}
+  #intro .bot{animation:crackBot .5s cubic-bezier(.45,0,.55,1) .3s forwards!important}
 }
+
+/* yolk drops out of the cracked egg and splats open the page */
+@property --hole{syntax:"<length>"; inherits:false; initial-value:0px}
+#intro{--land:32vh}
+#intro .curtain{position:absolute; inset:0; background:#323232;
+  -webkit-mask:radial-gradient(circle at 50% calc(50% + var(--land)), #0000 var(--hole), #000 calc(var(--hole) + .5px));
+          mask:radial-gradient(circle at 50% calc(50% + var(--land)), #0000 var(--hole), #000 calc(var(--hole) + .5px));
+  animation:introHole .38s cubic-bezier(.6,0,.9,.45) .6s forwards}
+@keyframes introHole{to{--hole:150vmax}}
+#intro .shell-wrap{z-index:2}
+#intro .yolk{position:absolute; left:50%; top:50%; z-index:3; width:min(9vw,38px); aspect-ratio:1; border-radius:50%;
+  background:#E9631A; opacity:0; transform:translate(-50%,-50%) scale(.4);
+  animation:yolkFall .55s linear .3s forwards}
+@keyframes yolkFall{
+  0%{opacity:0; transform:translate(-50%,-50%) scale(.4); animation-timing-function:ease-out}
+  6%{opacity:1}
+  15%{opacity:1; transform:translate(-50%,-38%) scale(1); animation-timing-function:cubic-bezier(.5,0,1,1)}
+  55%{opacity:1; transform:translate(-50%,calc(-50% + 32vh)) scale(.9,1.15); animation-timing-function:ease-out}
+  64%{opacity:1; transform:translate(-50%,calc(-50% + 32vh)) scale(1.8,.42)}
+  100%{opacity:0; transform:translate(-50%,calc(-50% + 32vh)) scale(3.4,.5)}}
+#intro .drops{position:absolute; left:50%; top:calc(50% + 32vh); z-index:1}
+#intro .drops i{position:absolute; left:0; top:0; width:7px; height:7px; border-radius:50%; background:#E9631A; opacity:0;
+  transform:translate(-50%,-50%); animation:dropFly .32s ease-out .6s forwards}
+#intro .drops i:nth-child(1){--dx:-64px; --dy:-30px}
+#intro .drops i:nth-child(2){--dx:-34px; --dy:-52px; width:5px; height:5px}
+#intro .drops i:nth-child(3){--dx:8px;   --dy:-60px; width:4px; height:4px}
+#intro .drops i:nth-child(4){--dx:40px;  --dy:-46px; width:6px; height:6px}
+#intro .drops i:nth-child(5){--dx:70px;  --dy:-22px}
+#intro .drops i:nth-child(6){--dx:-82px; --dy:-6px; width:4px; height:4px}
+@keyframes dropFly{0%{opacity:1; transform:translate(-50%,-50%) scale(.6)}
+  100%{opacity:0; transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1)}}
