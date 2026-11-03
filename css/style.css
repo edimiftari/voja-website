@@ -47,7 +47,8 @@ header.top.open .menu-btn i::after{top:4px; transform:rotate(-45deg)}
 .hero h1{grid-column:1 / span 9; font-family:var(--display); font-weight:400; font-size:clamp(56px,11vw,168px); line-height:.92; letter-spacing:-.035em; margin:0; text-wrap:balance}
 .hero h1 em{font-style:normal; color:var(--ginger)}
 .hero .mark{grid-column:10 / span 3; justify-self:end; width:min(100%, 220px)}
-.hero .mark svg{width:100%; height:auto; display:block; transform-origin:50% 92%; animation:rock 3.2s ease-in-out 1.6s infinite}
+.hero .mark svg{width:100%; height:auto; display:block}
+.hero .mark .wob{position:relative; transform-origin:50% 92%; animation:rock 3.2s ease-in-out 1.6s infinite}
 @keyframes rock{0%,37.5%,100%{transform:rotate(0)}7.5%{transform:rotate(-7deg)}15%{transform:rotate(5deg)}22.5%{transform:rotate(-3deg)}30%{transform:rotate(1deg)}}
 .hero .sub{display:grid; grid-template-columns:repeat(12,1fr); gap:24px; margin-top:clamp(32px,5vw,64px); padding-top:24px; border-top:1px solid var(--rule)}
 .hero .sub p{grid-column:1 / span 6; margin:0; font-size:clamp(17px,1.6vw,21px); line-height:1.45; max-width:44ch}
@@ -209,7 +210,7 @@ header.top .menu-btn{color:#EBEBDF; border-color:#EBEBDF}
 .card:hover .play{transform:scale(1.08)}
 /* Keep the two signature animations (egg wobble, rotating copyright seal) even when "reduce motion" is on */
 @media (prefers-reduced-motion:reduce){
-  .hero .mark svg{animation:rock 3.2s ease-in-out 1.6s infinite!important}
+  .hero .mark .wob{animation:rock 3.2s ease-in-out 1.6s infinite!important}
   .seal .ring{animation:spin 40s linear infinite!important}
 }
 
@@ -313,3 +314,23 @@ html, body{overscroll-behavior-y:none}
   #ptr.cracked .ptr-top{animation:ptrTop .38s cubic-bezier(.45,0,.55,1) forwards!important}
   #ptr.cracked .ptr-bot{animation:ptrBot .38s cubic-bezier(.45,0,.55,1) forwards!important}
 }
+
+/* ---------- the egg that watches you + the hidden yolk (tap the egg 5 times) ---------- */
+.hero .mark{pointer-events:auto}
+.hero .mark .watch{will-change:transform; cursor:pointer; -webkit-tap-highlight-color:transparent}
+.hero .mark .tap{position:relative}
+.hero .mark .h-part{position:absolute; inset:0; width:100%; height:100%; overflow:visible}
+.hero .mark .h-top, .hero .mark .h-bot{visibility:hidden}
+.hero .mark .h-top{clip-path:polygon(0 0,100% 0,100% 53%,84% 47%,68% 56%,52% 46%,36% 56%,20% 47%,0 54%); transform-origin:12% 52%}
+.hero .mark .h-bot{clip-path:polygon(0 54%,20% 47%,36% 56%,52% 46%,68% 56%,84% 47%,100% 53%,100% 100%,0 100%)}
+.hero .mark .h-crack polyline{fill:none; stroke:#323232; stroke-width:12; stroke-linejoin:round; stroke-linecap:round;
+  stroke-dasharray:1 1; stroke-dashoffset:var(--crack-off,1); transition:stroke-dashoffset .25s ease-out}
+.hero .mark.open .egg, .hero .mark.open .h-crack{visibility:hidden}
+.hero .mark.open .h-top, .hero .mark.open .h-bot{visibility:visible}
+.hero .mark.open .wob{animation-play-state:paused}
+.yolk-splat{position:absolute; z-index:8; width:240px; height:240px; filter:url(#goo2); pointer-events:none}
+.yolk-splat > *{position:absolute; left:50%; top:50%; border-radius:50%; transform:translate(-50%,-50%)}
+.yolk-splat .puddle{width:24px; height:24px; pointer-events:auto; cursor:pointer;
+  background:radial-gradient(circle at 36% 32%, rgba(255,222,186,.9) 0 3px, rgba(255,222,186,0) 8px),
+             radial-gradient(circle at 50% 50%, #EC6E22 62%, #D2521A 100%)}
+.yolk-splat i{width:var(--s,12px); height:var(--s,12px); background:#EC6E22; opacity:0}
