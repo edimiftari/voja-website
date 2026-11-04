@@ -7,7 +7,7 @@
    - id           short name with no spaces, used in the link (voja.site/#p-amber-bottle)
                   and as the folder name: projects/<id>/
    - title        project name
-   - category     one of: "3D", "Motion", "Packaging", "Graphic", "Architecture"
+   - category     one of: "3D", "Motion", "Packaging", "Branding", "Architecture"
    - year         e.g. 2026
    - size         width on the homepage grid: "large", "medium" or "small"
    - client, role, tools, description   text shown on the project page
@@ -94,7 +94,7 @@ window.VOJA_PROJECTS = [
   {
     id: "grid-posters",
     title: "Grid poster series",
-    category: "Graphic",
+    category: "Branding",
     year: 2025,
     size: "small",
     client: "Self-initiated",
@@ -154,7 +154,7 @@ window.VOJA_PROJECTS = [
   {
     id: "mono-id",
     title: "Mono ceramics identity",
-    category: "Graphic",
+    category: "Branding",
     year: 2026,
     size: "large",
     client: "Placeholder client",

@@ -3,7 +3,7 @@
 "use strict";
 
 const PROJECTS = window.VOJA_PROJECTS || [];
-const CAT_ORDER = ["3D", "Motion", "Packaging", "Graphic", "Architecture"];
+const CAT_ORDER = ["3D", "Motion", "Packaging", "Branding", "Architecture"];
 const SIZE = { large: "w8", medium: "w6", small: "w4" };
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const isVideo = src => /\.(mp4|webm|mov)(\?|$)/i.test(src);
