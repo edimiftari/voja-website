@@ -25,6 +25,11 @@
                   YouTube links also work inside media, so you can mix them with images:
                     media: ["projects/orb/01.jpg", "https://youtu.be/AbC123xyz45"]
    - vimeo        optional Vimeo video number (vimeo.com/123456789 -> "123456789")
+   - loop         optional short muted video (.mp4) that plays when the cover "hatches" open on hover,
+                  e.g. loop: "projects/orb/loop.mp4"
+   - compare      optional before / after slider at the top of the project page:
+                    compare: { before: "projects/pavilion/clay.jpg", after: "projects/pavilion/final.jpg", labels: ["Clay", "Final"] }
+                  (labels are optional; "demo" shows a placeholder version)
    - placeholder  the drawn stand-in shown until you add a cover (you can ignore it)
 
    The order of the list is the order on the site.
@@ -44,6 +49,7 @@ window.VOJA_PROJECTS = [
     cover: "",
     youtube: "",
     media: [],
+    compare: "demo",
     placeholder: { scene: "bottle", tone: "azure" }
   },
   {
@@ -89,6 +95,7 @@ window.VOJA_PROJECTS = [
     cover: "",
     youtube: "",
     media: [],
+    compare: "demo",
     placeholder: { scene: "arch", tone: "parchment" }
   },
   {
