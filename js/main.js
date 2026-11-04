@@ -254,12 +254,16 @@ addEventListener("hashchange", route);
   if (!watch) return;
   let tx = 0, ty = 0, x = 0, y = 0, lastInput = 0, visible = true;
   const clamp = v => Math.max(-1, Math.min(1, v));
-  addEventListener("pointermove", e => {
+  const mouse = matchMedia("(hover: hover)").matches;
+  // mouse: the egg only reacts while the pointer is over it, leaning hard toward it, and settles back when it leaves
+  mark.addEventListener("pointermove", e => {
     if (e.pointerType === "touch") return;
-    const r = watch.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-    tx = clamp((e.clientX - cx) / (innerWidth * 0.45)); ty = clamp((e.clientY - cy) / (innerHeight * 0.45));
+    const r = mark.getBoundingClientRect();
+    tx = clamp((e.clientX - (r.left + r.width / 2)) / (r.width / 2));
+    ty = clamp((e.clientY - (r.top + r.height / 2)) / (r.height / 2));
     lastInput = performance.now();
-  }, { passive: true });
+  });
+  mark.addEventListener("pointerleave", () => { tx = 0; ty = 0; });
   addEventListener("deviceorientation", e => {          // phones: follow how the phone is tilted
     if (e.gamma == null) return;
     tx = clamp(e.gamma / 30); ty = clamp(((e.beta || 45) - 45) / 30);
@@ -268,11 +272,11 @@ addEventListener("hashchange", route);
   new IntersectionObserver(es => { visible = es[0].isIntersecting; if (visible) requestAnimationFrame(look); }).observe(watch);
   function look(now) {
     if (!visible) return;
-    if (now - lastInput > 2500) {                         // nobody around: look about on its own
+    if (!mouse && now - lastInput > 2500) {               // phones with nobody tilting: look about on its own
       const t = now / 1000; tx = 0.55 * Math.sin(t * 0.5) * Math.cos(t * 0.17); ty = 0.35 * Math.sin(t * 0.31 + 1);
     }
-    x += (tx - x) * 0.08; y += (ty - y) * 0.08;
-    watch.style.transform = `perspective(700px) translate(${x * 6}px, ${y * 4}px) rotateY(${x * 16}deg) rotateX(${-y * 12}deg) rotate(${x * 4}deg)`;
+    x += (tx - x) * 0.1; y += (ty - y) * 0.1;
+    watch.style.transform = `perspective(600px) translate(${x * 12}px, ${y * 9}px) rotateY(${x * 34}deg) rotateX(${-y * 26}deg) rotate(${x * 8}deg)`;
     requestAnimationFrame(look);
   }
   requestAnimationFrame(look);
