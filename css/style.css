@@ -418,3 +418,8 @@ html, body{overscroll-behavior-y:none}
   .reel-play{transition:transform .45s cubic-bezier(.3,1.5,.5,1)!important}
   .reel-poster{transition:opacity .8s ease!important}
 }
+
+/* service cards lean toward the mouse (js); the leaning card sits above its neighbours */
+.services{position:relative}
+.svc{position:relative; will-change:transform}
+.svc.leaning{z-index:2}
