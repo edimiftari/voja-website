@@ -71,11 +71,38 @@ function mediaTag(src, alt, opts = {}) {
   return `<img src="${esc(src)}" alt="${esc(alt)}" loading="lazy" decoding="async">`;
 }
 
+/* ---------- card media: covers that crack open ("hatch") to show a video loop ---------- */
+const CRACK = "0,52 12,46 25,56 38,45 50,55 62,46 75,56 88,47 100,53";
+const isHatch = p => !!p.loop || (!p.cover && !ytList(p)[0]);  // projects with a loop, plus the drawn placeholders
+function coverTag(p, i, v = 0) {
+  if (p.cover) return mediaTag(p.cover, p.title);
+  if (ytList(p)[0]) return ytThumb(ytList(p)[0], p.title);
+  return `<canvas data-i="${i}" data-v="${v}" aria-hidden="true"></canvas>`;
+}
+function cardMedia(p, i) {
+  if (!isHatch(p)) return coverTag(p, i);
+  const inside = p.loop ? `<video data-src="${esc(p.loop)}" muted loop playsinline preload="none"></video>`
+                        : `<canvas data-i="${i}" data-v="1" aria-hidden="true"></canvas>`;
+  return `<div class="hatch-in">${inside}</div><div class="shell s-top">${coverTag(p, i)}</div><div class="shell s-bot">${coverTag(p, i)}</div>` +
+    `<svg class="card-crack" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="${CRACK}"/></svg>`;
+}
+
+/* ---------- before / after slider (project pages) ---------- */
+function compareTag(p) {
+  const c = p.compare, demo = c === "demo";
+  const [lb, la] = (c && c.labels) || ["Clay", "Final"];
+  const before = demo ? `<canvas data-v="0" class="clay"></canvas>` : mediaTag(c.before, `${p.title}, ${lb}`);
+  const after = demo ? `<canvas data-v="0"></canvas>` : mediaTag(c.after, `${p.title}, ${la}`);
+  return `<div class="g compare" style="--pos:50%"><div class="cmp-before">${before}</div><div class="cmp-after">${after}</div>` +
+    `<span class="cmp-label l">${esc(lb)}</span><span class="cmp-label r">${esc(la)}</span><span class="cmp-handle" aria-hidden="true"></span>` +
+    `<input class="cmp-range" type="range" min="0" max="100" value="50" aria-label="Drag to compare ${esc(lb)} and ${esc(la)}"></div>`;
+}
+
 /* ---------- build grid ---------- */
 const grid = document.getElementById("grid"), filters = document.getElementById("filters");
 grid.innerHTML = PROJECTS.map((p, i) => `
-  <a class="card ${SIZE[p.size] || "w4"}" href="#p-${esc(p.id)}" data-cat="${esc(p.category)}">
-    <div class="plate">${p.cover ? mediaTag(p.cover, p.title) : (ytList(p)[0] ? ytThumb(ytList(p)[0], p.title) : `<canvas data-i="${i}" aria-hidden="true"></canvas>`)}${ytList(p).length || (p.media || []).some(m => ytId(typeof m === "string" ? m : m.src)) ? `<span class="play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></span>` : ""}<span class="view">View project</span></div>
+  <a class="card ${SIZE[p.size] || "w4"}${isHatch(p) ? " hatch" : ""}" href="#p-${esc(p.id)}" data-cat="${esc(p.category)}">
+    <div class="plate">${cardMedia(p, i)}${ytList(p).length || (p.media || []).some(m => ytId(typeof m === "string" ? m : m.src)) ? `<span class="play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></span>` : ""}<span class="view">View project</span></div>
     <div class="cap"><h3>${esc(p.title)}</h3><span class="label">${esc(p.category)} · ${esc(p.year)}</span></div>
   </a>`).join("");
 
@@ -91,7 +118,7 @@ filters.addEventListener("click", e => {
   paintAll();
 });
 function paintAll() {
-  grid.querySelectorAll("canvas").forEach(cv => { if (cv.offsetParent) paint(cv, PROJECTS[cv.dataset.i].placeholder); });
+  grid.querySelectorAll("canvas").forEach(cv => { if (cv.offsetParent) paint(cv, PROJECTS[cv.dataset.i].placeholder, +(cv.dataset.v || 0)); });
 }
 
 /* ---------- project page (opens over the homepage, linkable as #p-<id>) ---------- */
@@ -113,21 +140,55 @@ function openProject(id) {
   html += media.map(m => ytId(m.src) ? ytEmbed(ytId(m.src), p.title, m.wide === false ? " half" : "") : `<figure class="g real${m.wide ? "" : " half"}">${mediaTag(m.src, p.title, { controls: isVideo(m.src) && m.controls })}${m.caption ? `<figcaption class="label">${esc(m.caption)}</figcaption>` : ""}</figure>`).join("");
   const placeholder = !html;
   if (placeholder) html = `<div class="g"><canvas></canvas></div><div class="g half"><canvas></canvas></div><div class="g half"><canvas></canvas></div>`;
+  if (p.compare) html = compareTag(p) + html;
   gal.innerHTML = html;
+  gal.querySelectorAll(".compare").forEach(el => {
+    const r = el.querySelector(".cmp-range");
+    r.addEventListener("input", () => el.style.setProperty("--pos", r.value + "%"));
+  });
   document.getElementById("p-next").onclick = () => { location.hash = "p-" + PROJECTS[(i + 1) % PROJECTS.length].id; };
   document.title = `${p.title} · Voja Studio`;
-  if (ov.hidden) lastScroll = scrollY;
+  const fresh = ov.hidden;
+  if (fresh) lastScroll = scrollY;
   ov.hidden = false; ov.scrollTop = 0; document.body.style.overflow = "hidden";
-  if (placeholder) requestAnimationFrame(() => gal.querySelectorAll("canvas").forEach((cv, k) => paint(cv, p.placeholder, k)));
+  if (fresh && booted) crackIn();
+  requestAnimationFrame(() => gal.querySelectorAll("canvas").forEach((cv, k) => paint(cv, p.placeholder, cv.dataset.v ? +cv.dataset.v : k)));
   document.getElementById("close").focus({ preventScroll: true });
 }
 function closeProject(clearHash = true) {
-  if (ov.hidden) return;
-  ov.hidden = true; document.body.style.overflow = ""; currentId = null;
-  document.title = DEFAULT_TITLE;
-  ov.querySelectorAll("video").forEach(v => v.pause());
-  if (clearHash && location.hash.startsWith("#p-")) history.replaceState(null, "", "#work");
-  scrollTo(0, lastScroll);
+  if (ov.hidden || closing) return;
+  const finish = () => {
+    ov.hidden = true; document.body.style.overflow = ""; currentId = null; closing = false;
+    document.title = DEFAULT_TITLE;
+    ov.querySelectorAll("video").forEach(v => v.pause());
+    if (clearHash && location.hash.startsWith("#p-")) history.replaceState(null, "", "#work");
+    scrollTo(0, lastScroll);
+  };
+  if (booted) { closing = true; crackOut(finish); } else finish();
+}
+
+/* ---------- shell-crack page transition: a crack runs across the screen and the project splits open along it ---------- */
+let booted = false, closing = false;
+const CRACK_PTS = [[0,52],[8,47],[17,55],[26,46],[35,54],[44,45],[53,55],[62,46],[71,54],[80,46],[89,55],[100,49]];
+const crackClip = s => `polygon(${CRACK_PTS.map(([x, y]) => `${x}% ${y - s}%`).join(",")},${[...CRACK_PTS].reverse().map(([x, y]) => `${x}% ${y + s}%`).join(",")})`;
+const fx = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+fx.id = "crackfx"; fx.setAttribute("viewBox", "0 0 100 100"); fx.setAttribute("preserveAspectRatio", "none"); fx.setAttribute("aria-hidden", "true");
+fx.innerHTML = `<polyline points="${CRACK_PTS.map(p => p.join(",")).join(" ")}"/>`;
+document.body.appendChild(fx);
+const fxLine = fx.firstChild;
+const stopFx = () => [fx, fxLine, ov].forEach(el => el.getAnimations().forEach(a => a.cancel()));
+function crackIn() {
+  stopFx();
+  fxLine.animate([{ strokeDashoffset: 4000 }, { strokeDashoffset: 0 }], { duration: 170, easing: "ease-out", fill: "forwards" });
+  fx.animate([{ opacity: 1 }, { opacity: 1, offset: .45 }, { opacity: 0 }], { duration: 480, fill: "forwards" });
+  ov.animate([{ clipPath: crackClip(0) }, { clipPath: crackClip(62) }], { duration: 560, delay: 140, easing: "cubic-bezier(.7,0,.2,1)", fill: "backwards" });
+}
+function crackOut(done) {
+  stopFx();
+  fxLine.animate([{ strokeDashoffset: 0 }, { strokeDashoffset: 0 }], { duration: 1, fill: "forwards" });
+  fx.animate([{ opacity: 0 }, { opacity: 0, offset: .72 }, { opacity: 1, offset: .82 }, { opacity: 0 }], { duration: 620, fill: "forwards" });
+  ov.animate([{ clipPath: crackClip(62) }, { clipPath: crackClip(0) }], { duration: 440, easing: "cubic-bezier(.7,0,.2,1)", fill: "forwards" })
+    .finished.then(() => { done(); ov.getAnimations().forEach(a => a.cancel()); }, () => done());
 }
 const DEFAULT_TITLE = document.title;
 function route() { const h = location.hash.slice(1); if (h.startsWith("p-")) openProject(h.slice(2)); else closeProject(false); }
@@ -284,6 +345,63 @@ mb.addEventListener("click", () => setMenu(!hdr.classList.contains("open")));
 document.getElementById("main-nav").addEventListener("click", e => { if (e.target.closest("a")) setMenu(false); });
 addEventListener("keydown", e => { if (e.key === "Escape") setMenu(false); });
 
+/* ---------- projects that hatch: hover (or scroll to, on phones) and the cover cracks open ---------- */
+(function () {
+  const open = card => {
+    if (card.classList.contains("hatched")) return;
+    card.classList.add("hatched");
+    const v = card.querySelector(".hatch-in video");
+    if (v) { if (!v.src) v.src = v.dataset.src; v.play().catch(() => {}); }
+  };
+  const shut = card => { card.classList.remove("hatched"); const v = card.querySelector(".hatch-in video"); if (v) v.pause(); };
+  const cards = grid.querySelectorAll(".card.hatch");
+  if (matchMedia("(hover: hover)").matches) {
+    cards.forEach(c => { c.addEventListener("mouseenter", () => open(c)); c.addEventListener("mouseleave", () => shut(c)); });
+  } else {
+    const io = new IntersectionObserver(es => es.forEach(e => (e.isIntersecting ? open : shut)(e.target)), { rootMargin: "-38% 0px -38% 0px" });
+    cards.forEach(c => io.observe(c));
+  }
+})();
+
+/* ---------- scroll depth: hero layers drift at different speeds ---------- */
+(function () {
+  const h1 = document.querySelector(".hero h1"), mark = document.querySelector(".hero .mark"), sub = document.querySelector(".hero .sub");
+  if (!h1 || !mark || !sub) return;
+  let ticking = false;
+  const apply = () => {
+    ticking = false;
+    const y = Math.min(scrollY, innerHeight * 1.2);
+    mark.style.translate = `0 ${y * 0.32}px`;   // the egg feels furthest away
+    h1.style.translate = `0 ${y * 0.14}px`;
+    sub.style.translate = `0 ${y * 0.05}px`;
+  };
+  addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(apply); } }, { passive: true });
+  apply();
+})();
+
+/* ---------- footer seal: spins faster while you scroll, the egg wobbles when you reach the bottom ---------- */
+(function () {
+  const seal = document.querySelector("footer .seal"); if (!seal) return;
+  const ring = seal.querySelector(".ring"), egg = seal.querySelectorAll("path")[1];
+  if (egg) { egg.style.transformBox = "fill-box"; egg.style.transformOrigin = "50% 92%"; }
+  let lastY = scrollY, lastT = performance.now(), boost = 0, running = false, atBottom = false;
+  const tick = () => {
+    boost *= 0.93;
+    const a = ring && ring.getAnimations()[0]; if (a) a.playbackRate = 1 + boost;
+    if (boost > 0.02) requestAnimationFrame(tick); else { running = false; if (a) a.playbackRate = 1; }
+  };
+  addEventListener("scroll", () => {
+    const now = performance.now(), dt = Math.max(16, now - lastT);
+    boost = Math.min(16, boost + Math.abs(scrollY - lastY) / dt * 2.5);
+    lastY = scrollY; lastT = now;
+    if (!running) { running = true; requestAnimationFrame(tick); }
+    const bottom = innerHeight + scrollY >= document.documentElement.scrollHeight - 4;
+    if (bottom && !atBottom && egg) egg.animate([{ transform: "rotate(0)" }, { transform: "rotate(-12deg)" }, { transform: "rotate(9deg)" },
+      { transform: "rotate(-5deg)" }, { transform: "rotate(2deg)" }, { transform: "rotate(0)" }], { duration: 900, easing: "ease-out" });
+    atBottom = bottom;
+  }, { passive: true });
+})();
+
 /* ---------- copy email ---------- */
 document.getElementById("copy").addEventListener("click", async e => {
   const m = document.getElementById("mail"), b = e.currentTarget;
@@ -304,6 +422,6 @@ let rt; addEventListener("resize", () => {
   clearTimeout(rt);
   rt = setTimeout(() => { if (innerWidth > 600) setMenu(false); paintAll(); if (currentId && !ov.querySelector(".real,.embed")) openProject(currentId); }, 150);
 });
-(document.fonts?.ready || Promise.resolve()).then(() => { paintAll(); route(); });
+(document.fonts?.ready || Promise.resolve()).then(() => { paintAll(); if (!booted) route(); booted = true; });
 paintAll(); route();
 })();
