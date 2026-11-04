@@ -431,3 +431,6 @@ html, body{overscroll-behavior-y:none}
 .services{position:relative}
 .svc{position:relative; will-change:transform}
 .svc.leaning{z-index:2}
+
+/* the egg and the yolk are toys, not text: never select or highlight them (or nearby text) when tapped */
+.hero .mark, .yolk-splat, .yolk-splat *{-webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none}
