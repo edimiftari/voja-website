@@ -413,7 +413,7 @@ html, body{overscroll-behavior-y:none}
 .reel-win.open .reel-play{transform:scale(1) rotate(0)}
 .reel-win.open:hover .reel-play{transform:scale(1.08) rotate(-4deg)}
 .reel-win.open:active .reel-play{transform:scale(.94)}
-@media (hover:hover){ .reel-win.open{cursor:none} }
+@media (hover:hover){ .reel-win.open, .reel-win.open .reel-play{cursor:none} }  /* the egg is the cursor */
 .reel-cap{display:flex; justify-content:space-between; gap:16px; margin-top:14px}
 .reel-ov{position:fixed; inset:0; z-index:20; background:var(--ink); display:flex; align-items:center; justify-content:center;
   padding:72px calc(var(--gutR) + 2vw) 32px calc(var(--gut) + 2vw)}
