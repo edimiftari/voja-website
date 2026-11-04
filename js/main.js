@@ -327,6 +327,8 @@ addEventListener("hashchange", route);
   const TAPS = 5;
   let taps = 0, resetT = 0, busy = false;
   const setCrack = n => mark.style.setProperty("--crack-off", String(n ? 1 - 0.2 * n : 1));
+  // quick repeated taps would otherwise start a text selection (blue highlight) around the egg
+  mark.addEventListener("mousedown", e => { if (e.detail > 1) e.preventDefault(); });
   mark.addEventListener("click", () => {
     if (busy) return;
     clearTimeout(resetT);
@@ -381,6 +383,7 @@ addEventListener("hashchange", route);
     });
     // tap the puddle to wipe it away
     // tap the puddle to wipe it away: a quick swipe smears it sideways and it's gone
+    puddle.addEventListener("mousedown", e => e.preventDefault());   // no text selection when wiping
     puddle.addEventListener("click", () => {
       if (el.dataset.wiping) return; el.dataset.wiping = "1";
       const dir = Math.random() < 0.5 ? -1 : 1, at = `translate(${dx}px,${dy}px)`;
