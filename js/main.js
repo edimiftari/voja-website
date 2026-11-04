@@ -282,6 +282,40 @@ addEventListener("hashchange", route);
   requestAnimationFrame(look);
 })();
 
+/* ---------- service cards: same lean as the hero egg, only while the mouse is over a card ----------
+   The pointer is checked against each card's resting (untilted) box, so a card leaning away never slips out from under it. */
+(function () {
+  const wrap = document.querySelector(".services");
+  if (!wrap || !matchMedia("(hover: hover)").matches) return;
+  const clamp = v => Math.max(-1, Math.min(1, v));
+  const cards = [...wrap.querySelectorAll(".svc")].map(el => ({ el, tx: 0, ty: 0, x: 0, y: 0 }));
+  let raf = 0;
+  const step = () => {
+    raf = 0;
+    cards.forEach(c => {
+      c.x += (c.tx - c.x) * 0.1; c.y += (c.ty - c.y) * 0.1;
+      const still = Math.abs(c.tx - c.x) + Math.abs(c.ty - c.y) < 0.002;
+      if (still && !c.tx && !c.ty) { c.x = c.y = 0; c.el.style.transform = ""; c.el.classList.remove("leaning"); return; }
+      c.el.style.transform = `perspective(600px) translate(${c.x * 12}px, ${c.y * 9}px) rotateY(${c.x * 34}deg) rotateX(${-c.y * 26}deg) rotate(${c.x * 8}deg)`;
+      if (!still) raf = raf || requestAnimationFrame(step);
+    });
+  };
+  const go = () => { if (!raf) raf = requestAnimationFrame(step); };
+  wrap.addEventListener("pointermove", e => {
+    if (e.pointerType === "touch") return;
+    const W = wrap.getBoundingClientRect(), px = e.clientX - W.left, py = e.clientY - W.top;
+    cards.forEach(c => {
+      const l = c.el.offsetLeft, t = c.el.offsetTop, w = c.el.offsetWidth, h = c.el.offsetHeight;
+      const inside = px >= l && px <= l + w && py >= t && py <= t + h;
+      c.tx = inside ? clamp((px - l - w / 2) / (w / 2)) : 0;
+      c.ty = inside ? clamp((py - t - h / 2) / (h / 2)) : 0;
+      c.el.classList.toggle("leaning", inside);
+    });
+    go();
+  });
+  wrap.addEventListener("pointerleave", () => { cards.forEach(c => { c.tx = c.ty = 0; }); go(); });
+})();
+
 /* ---------- the hidden yolk: tap the egg 5 times ---------- */
 (function () {
   const mark = document.querySelector(".hero .mark");
