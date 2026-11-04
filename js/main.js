@@ -448,7 +448,7 @@ addEventListener("keydown", e => { if (e.key === "Escape") setMenu(false); });
   {
     let tx = 0, ty = 0, cx = 0, cy = 0, raf = 0, back = 0;
     const follow = () => {
-      cx += (tx - cx) * 0.18; cy += (ty - cy) * 0.18;
+      cx += (tx - cx) * 0.3; cy += (ty - cy) * 0.3;   // tight enough to feel like the cursor itself
       play.style.translate = `${cx}px ${cy}px`;
       raf = (Math.abs(tx - cx) > 0.3 || Math.abs(ty - cy) > 0.3) ? requestAnimationFrame(follow) : 0;
     };
