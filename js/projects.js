@@ -4,7 +4,7 @@
    ADD-YOUR-WORK.md explains it step by step.
 
    For each project:
-   - id           short name with no spaces, used in the link (voja.site/#p-amber-bottle)
+   - id           short name with no spaces, used in the link (vojastudio.com/#p-amber-bottle)
                   and as the folder name: projects/<id>/
    - title        project name
    - category     one of: "3D", "Motion", "Packaging", "Branding", "Architecture"
