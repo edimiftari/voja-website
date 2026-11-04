@@ -444,28 +444,6 @@ addEventListener("keydown", e => { if (e.key === "Escape") setMenu(false); });
   const req = () => { if (!ticking) { ticking = true; requestAnimationFrame(morph); } };
   addEventListener("scroll", req, { passive: true }); addEventListener("resize", req); morph();
 
-  // the ginger egg button follows the cursor over the reel; on phones it follows your finger and drifts back to the centre
-  {
-    let tx = 0, ty = 0, cx = 0, cy = 0, raf = 0, back = 0;
-    const follow = () => {
-      cx += (tx - cx) * 0.3; cy += (ty - cy) * 0.3;   // tight enough to feel like the cursor itself
-      play.style.translate = `${cx}px ${cy}px`;
-      raf = (Math.abs(tx - cx) > 0.3 || Math.abs(ty - cy) > 0.3) ? requestAnimationFrame(follow) : 0;
-    };
-    const go = () => { if (!raf) raf = requestAnimationFrame(follow); };
-    const aim = (x, y) => {
-      const r = win.getBoundingClientRect(), mx = r.width / 2 - 50, my = r.height / 2 - 60;   // keep the egg inside the frame
-      tx = Math.max(-mx, Math.min(mx, x - r.left - r.width / 2)); ty = Math.max(-my, Math.min(my, y - r.top - r.height / 2)); go();
-    };
-    const home = () => { tx = 0; ty = 0; go(); };
-    win.addEventListener("pointermove", e => { if (e.pointerType !== "touch") aim(e.clientX, e.clientY); });
-    win.addEventListener("pointerleave", e => { if (e.pointerType !== "touch") home(); });
-    const touch = e => { clearTimeout(back); const t = e.touches[0]; if (t) aim(t.clientX, t.clientY); };
-    win.addEventListener("touchstart", touch, { passive: true });
-    win.addEventListener("touchmove", touch, { passive: true });
-    win.addEventListener("touchend", () => { clearTimeout(back); back = setTimeout(home, 900); }, { passive: true });
-  }
-
   // full reel with sound, opened with the same shell crack as the projects
   let closingReel = false;
   const openReel = () => {
