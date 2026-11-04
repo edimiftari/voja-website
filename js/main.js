@@ -264,19 +264,22 @@ addEventListener("hashchange", route);
     lastInput = performance.now();
   });
   mark.addEventListener("pointerleave", () => { tx = 0; ty = 0; });
-  addEventListener("deviceorientation", e => {          // phones: follow how the phone is tilted
-    if (e.gamma == null) return;
-    tx = clamp(e.gamma / 30); ty = clamp(((e.beta || 45) - 45) / 30);
-    lastInput = performance.now();
+  // phones: react to how the phone is being turned, measured from a resting reference. When the phone has been
+  // held still for ~1.5 s the reference catches up, so the egg eases back to its original pose until you move again.
+  let ref = null, anchor = null, lastMove = 0;
+  addEventListener("deviceorientation", e => {
+    if (e.gamma == null || mouse) return;
+    const g = e.gamma, b = e.beta || 0, now = performance.now();
+    if (!ref) { ref = { g, b }; anchor = { g, b }; }
+    if (Math.abs(g - anchor.g) > 2 || Math.abs(b - anchor.b) > 2) { anchor = { g, b }; lastMove = now; }  // a real turn, not sensor noise
+    if (now - lastMove > 1500) { ref.g += (g - ref.g) * 0.12; ref.b += (b - ref.b) * 0.12; }
+    tx = clamp((g - ref.g) / 25); ty = clamp((b - ref.b) / 25);
   }, { passive: true });
   new IntersectionObserver(es => { visible = es[0].isIntersecting; if (visible) requestAnimationFrame(look); }).observe(watch);
   function look(now) {
     if (!visible) return;
-    if (!mouse && now - lastInput > 2500) {               // phones with nobody tilting: look about on its own
-      const t = now / 1000; tx = 0.55 * Math.sin(t * 0.5) * Math.cos(t * 0.17); ty = 0.35 * Math.sin(t * 0.31 + 1);
-    }
     x += (tx - x) * 0.1; y += (ty - y) * 0.1;
-    watch.style.transform = `perspective(600px) translate(${x * 12}px, ${y * 9}px) rotateY(${x * 34}deg) rotateX(${-y * 26}deg) rotate(${x * 8}deg)`;
+    watch.style.transform = `perspective(700px) translate(${x * 9}px, ${y * 6}px) rotateY(${x * 24}deg) rotateX(${-y * 18}deg) rotate(${x * 5}deg)`;
     requestAnimationFrame(look);
   }
   requestAnimationFrame(look);
@@ -296,7 +299,7 @@ addEventListener("hashchange", route);
       c.x += (c.tx - c.x) * 0.1; c.y += (c.ty - c.y) * 0.1;
       const still = Math.abs(c.tx - c.x) + Math.abs(c.ty - c.y) < 0.002;
       if (still && !c.tx && !c.ty) { c.x = c.y = 0; c.el.style.transform = ""; c.el.classList.remove("leaning"); return; }
-      c.el.style.transform = `perspective(600px) translate(${c.x * 12}px, ${c.y * 9}px) rotateY(${c.x * 34}deg) rotateX(${-c.y * 26}deg) rotate(${c.x * 8}deg)`;
+      c.el.style.transform = `perspective(700px) translate(${c.x * 9}px, ${c.y * 6}px) rotateY(${c.x * 24}deg) rotateX(${-c.y * 18}deg) rotate(${c.x * 5}deg)`;
       if (!still) raf = raf || requestAnimationFrame(step);
     });
   };
@@ -438,20 +441,26 @@ addEventListener("keydown", e => { if (e.key === "Escape") setMenu(false); });
   const req = () => { if (!ticking) { ticking = true; requestAnimationFrame(morph); } };
   addEventListener("scroll", req, { passive: true }); addEventListener("resize", req); morph();
 
-  // the ginger egg button follows the cursor over the reel (centred on touch screens)
-  if (matchMedia("(hover: hover)").matches) {
-    let tx = 0, ty = 0, cx = 0, cy = 0, raf = 0;
+  // the ginger egg button follows the cursor over the reel; on phones it follows your finger and drifts back to the centre
+  {
+    let tx = 0, ty = 0, cx = 0, cy = 0, raf = 0, back = 0;
     const follow = () => {
       cx += (tx - cx) * 0.18; cy += (ty - cy) * 0.18;
       play.style.translate = `${cx}px ${cy}px`;
       raf = (Math.abs(tx - cx) > 0.3 || Math.abs(ty - cy) > 0.3) ? requestAnimationFrame(follow) : 0;
     };
     const go = () => { if (!raf) raf = requestAnimationFrame(follow); };
-    win.addEventListener("pointermove", e => {
-      const r = win.getBoundingClientRect();
-      tx = e.clientX - r.left - r.width / 2; ty = e.clientY - r.top - r.height / 2; go();
-    });
-    win.addEventListener("pointerleave", () => { tx = 0; ty = 0; go(); });
+    const aim = (x, y) => {
+      const r = win.getBoundingClientRect(), mx = r.width / 2 - 50, my = r.height / 2 - 60;   // keep the egg inside the frame
+      tx = Math.max(-mx, Math.min(mx, x - r.left - r.width / 2)); ty = Math.max(-my, Math.min(my, y - r.top - r.height / 2)); go();
+    };
+    const home = () => { tx = 0; ty = 0; go(); };
+    win.addEventListener("pointermove", e => { if (e.pointerType !== "touch") aim(e.clientX, e.clientY); });
+    win.addEventListener("pointerleave", e => { if (e.pointerType !== "touch") home(); });
+    const touch = e => { clearTimeout(back); const t = e.touches[0]; if (t) aim(t.clientX, t.clientY); };
+    win.addEventListener("touchstart", touch, { passive: true });
+    win.addEventListener("touchmove", touch, { passive: true });
+    win.addEventListener("touchend", () => { clearTimeout(back); back = setTimeout(home, 900); }, { passive: true });
   }
 
   // full reel with sound, opened with the same shell crack as the projects
