@@ -340,17 +340,20 @@ html, body{overscroll-behavior-y:none}
 .card.hatch .hatch-in canvas, .card.hatch .hatch-in video{width:100%; height:100%; object-fit:cover; display:block;
   transform:scale(1.1); transition:transform 1.2s cubic-bezier(.2,.7,.1,1)}
 .card.hatch.hatched .hatch-in canvas, .card.hatch.hatched .hatch-in video{transform:scale(1)}
-.card.hatch .shell{z-index:1; transition:transform .55s cubic-bezier(.6,0,.3,1) .1s}
+.card.hatch .shell{z-index:1; transition:transform .5s cubic-bezier(.6,0,.3,1)}
 .card.hatch .shell canvas, .card.hatch .shell img, .card.hatch .shell video{width:100%; height:100%; object-fit:cover; display:block}
 .card.hatch:hover .shell canvas, .card.hatch:hover .shell img, .card.hatch:hover .shell video{transform:none}
 .card.hatch .s-top{clip-path:polygon(0 0,100% 0,100% 53%,88% 47%,75% 56%,62% 46%,50% 55%,38% 45%,25% 56%,12% 46%,0 52%)}
 .card.hatch .s-bot{clip-path:polygon(0 52%,12% 46%,25% 56%,38% 45%,50% 55%,62% 46%,75% 56%,88% 47%,100% 53%,100% 100%,0 100%)}
 .card.hatch.hatched .s-top{transform:translateY(-102%)}
 .card.hatch.hatched .s-bot{transform:translateY(102%)}
-.card-crack{position:absolute; inset:0; width:100%; height:100%; z-index:2; pointer-events:none}
-.card-crack polyline{fill:none; stroke:#E9631A; stroke-width:2.5; vector-effect:non-scaling-stroke; stroke-linejoin:round;
-  stroke-dasharray:3000; stroke-dashoffset:3000; transition:stroke-dashoffset .16s ease-out, opacity .2s ease .3s}
-.card.hatch.hatched .card-crack polyline{stroke-dashoffset:0; opacity:0}
+/* the crack draws across first, then the halves part, each carrying its side of the line;
+   on the way back the halves close first and the crack heals after */
+.card-crack{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
+.card-crack polyline{fill:none; stroke:#E9631A; stroke-width:5; vector-effect:non-scaling-stroke; stroke-linejoin:round;
+  stroke-dasharray:3000; stroke-dashoffset:3000; transition:stroke-dashoffset .2s ease-in .5s}
+.card.hatch.hatched .card-crack polyline{stroke-dashoffset:0; transition:stroke-dashoffset .18s ease-out}
+.card.hatch.hatched .shell{transition-delay:.18s}
 .card.hatch .play, .card.hatch .view{z-index:3}
 
 /* ---------- before / after slider ---------- */
@@ -370,13 +373,16 @@ html, body{overscroll-behavior-y:none}
 
 /* ---------- shell-crack page transition ---------- */
 #crackfx{position:fixed; inset:0; width:100%; height:100%; z-index:30; pointer-events:none; opacity:0}
-#crackfx polyline{fill:none; stroke:#E9631A; stroke-width:3; vector-effect:non-scaling-stroke; stroke-linejoin:round; stroke-dasharray:4000; stroke-dashoffset:4000}
+#crackfx polyline{fill:none; visibility:hidden; stroke:#E9631A; stroke-width:3; vector-effect:non-scaling-stroke; stroke-linejoin:round; stroke-dasharray:4000; stroke-dashoffset:4000}
+#crackfx .rim{stroke-dasharray:none; stroke-dashoffset:0}
 
 /* ---------- scroll depth: keep the drifting hero layers inside the hero ---------- */
 .hero{position:relative; overflow:hidden}
 
 @media (prefers-reduced-motion:reduce){
-  .card.hatch .shell{transition:transform .55s cubic-bezier(.6,0,.3,1) .1s!important}
+  .card.hatch .shell{transition:transform .5s cubic-bezier(.6,0,.3,1)!important}
+  .card.hatch.hatched .shell{transition-delay:.18s!important}
   .card.hatch .hatch-in canvas, .card.hatch .hatch-in video{transition:transform 1.2s cubic-bezier(.2,.7,.1,1)!important}
-  .card-crack polyline{transition:stroke-dashoffset .16s ease-out, opacity .2s ease .3s!important}
+  .card-crack polyline{transition:stroke-dashoffset .2s ease-in .5s!important}
+  .card.hatch.hatched .card-crack polyline{transition:stroke-dashoffset .18s ease-out!important}
 }
