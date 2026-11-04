@@ -179,29 +179,29 @@ fx.innerHTML = `<polyline class="whole" points="${PTS}"/><polyline class="rim" p
 document.body.appendChild(fx);
 const [fxLine, rimTop, rimBot] = fx.children;
 const EASE = "cubic-bezier(.7,0,.2,1)";
-const stopFx = () => [fx, ...fx.children, ov].forEach(el => el.getAnimations().forEach(a => a.cancel()));
+const stopFx = (t = ov) => [fx, ...fx.children, t].forEach(el => el.getAnimations().forEach(a => a.cancel()));
 // open: the crack runs across the screen, then splits in two and each edge rides out with the opening
-function crackIn() {
-  stopFx();
+function crackIn(t = ov) {
+  stopFx(t);
   fx.style.opacity = 1;
   fxLine.animate([{ strokeDashoffset: 4000, visibility: "visible" }, { strokeDashoffset: 0, visibility: "visible" }], { duration: 170, easing: "ease-out", fill: "forwards" });
   fxLine.animate([{ visibility: "hidden" }, { visibility: "hidden" }], { duration: 1, delay: 170, fill: "forwards" });
   const split = { duration: 560, delay: 170, easing: EASE, fill: "forwards" };
   rimTop.animate([{ transform: "translateY(0)", visibility: "visible" }, { transform: "translateY(-62px)", visibility: "visible" }], split);
   rimBot.animate([{ transform: "translateY(0)", visibility: "visible" }, { transform: "translateY(62px)", visibility: "visible" }], split);
-  ov.animate([{ clipPath: crackClip(0) }, { clipPath: crackClip(62) }], { duration: 560, delay: 170, easing: EASE, fill: "backwards" })
+  t.animate([{ clipPath: crackClip(0) }, { clipPath: crackClip(62) }], { duration: 560, delay: 170, easing: EASE, fill: "backwards" })
     .finished.then(() => { fx.style.opacity = 0; }, () => {});
 }
 // close: the two edges come back together, meet as one crack, and the crack heals away
-function crackOut(done) {
-  stopFx();
+function crackOut(done, t = ov) {
+  stopFx(t);
   fx.style.opacity = 1;
   const meet = { duration: 440, easing: EASE, fill: "forwards" };
   rimTop.animate([{ transform: "translateY(-62px)", visibility: "visible" }, { transform: "translateY(0)", visibility: "visible" }], meet);
   rimBot.animate([{ transform: "translateY(62px)", visibility: "visible" }, { transform: "translateY(0)", visibility: "visible" }], meet);
-  ov.animate([{ clipPath: crackClip(62) }, { clipPath: crackClip(0) }], meet)
+  t.animate([{ clipPath: crackClip(62) }, { clipPath: crackClip(0) }], meet)
     .finished.then(() => {
-      done(); ov.getAnimations().forEach(a => a.cancel());
+      done(); t.getAnimations().forEach(a => a.cancel());
       [rimTop, rimBot].forEach(r => r.getAnimations().forEach(a => a.cancel()));
       fxLine.animate([{ strokeDashoffset: 0, visibility: "visible" }, { strokeDashoffset: -4000, visibility: "visible" }],
         { duration: 220, easing: "ease-in" }).finished.then(() => { fx.style.opacity = 0; }, () => {});
@@ -361,6 +361,80 @@ function setMenu(open) { hdr.classList.toggle("open", open); mb.setAttribute("ar
 mb.addEventListener("click", () => setMenu(!hdr.classList.contains("open")));
 document.getElementById("main-nav").addEventListener("click", e => { if (e.target.closest("a")) setMenu(false); });
 addEventListener("keydown", e => { if (e.key === "Escape") setMenu(false); });
+
+/* ---------- showreel: an egg-shaped window that opens up as you scroll to it, then cracks open into the full reel ---------- */
+(function () {
+  const sec = document.getElementById("reel"), win = document.getElementById("reel-win");
+  if (!sec || !win) return;
+  const id = ytId(sec.dataset.youtube), loop = sec.dataset.loop;
+  const media = document.getElementById("reel-media"), play = document.getElementById("reel-play");
+  const rov = document.getElementById("reel-ov"), frame = document.getElementById("reel-frame"), rclose = document.getElementById("reel-close");
+  if (!id && !loop) { sec.hidden = true; return; }
+
+  // silent background loop: your own .mp4 if set (cleanest), otherwise the YouTube reel muted, behind its thumbnail
+  let loaded = false;
+  const load = () => {
+    if (loaded) return; loaded = true;
+    if (loop) { media.innerHTML = `<video src="${esc(loop)}" muted loop playsinline autoplay preload="auto" aria-hidden="true"></video>`; return; }
+    media.innerHTML = `<iframe tabindex="-1" aria-hidden="true" title="" allow="autoplay; encrypted-media"
+      src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}&controls=0&disablekb=1&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3&fs=0"></iframe>
+      <div class="reel-poster">${ytThumb(id, "")}</div>`;
+    media.querySelector("iframe").addEventListener("load", () => setTimeout(() => media.querySelector(".reel-poster").classList.add("gone"), 2600));
+  };
+  new IntersectionObserver(es => { if (es[0].isIntersecting) load(); }, { rootMargin: "300px 0px" }).observe(sec);
+
+  // scroll morph: starts as an egg, opens into the full 16:9 frame
+  const ease = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+  let ticking = false;
+  const morph = () => {
+    ticking = false;
+    const r = win.getBoundingClientRect(), vh = innerHeight, W = r.width, H = r.height;
+    const p = ease(Math.min(1, Math.max(0, (vh - (r.top + H * 0.35)) / (vh * 0.55))));  // egg when it peeks in, full frame by mid-screen
+    const eh = H * 0.94, ew = eh * 0.8, R = Math.min(22, W * 0.03);
+    const w = ew + (W - ew) * p, h = eh + (H - eh) * p, x = (W - w) / 2, y = (H - h) / 2;
+    const rx = w / 2 * (1 - p) + R * p, ryT = h * 0.58 * (1 - p) + R * p, ryB = h * 0.42 * (1 - p) + R * p;
+    win.style.clipPath = `inset(${y}px ${x}px ${y}px ${x}px round ${rx}px ${rx}px ${rx}px ${rx}px / ${ryT}px ${ryT}px ${ryB}px ${ryB}px)`;
+    media.style.transform = `scale(${1.18 - 0.18 * p})`;
+    win.classList.toggle("open", p > 0.9);
+  };
+  const req = () => { if (!ticking) { ticking = true; requestAnimationFrame(morph); } };
+  addEventListener("scroll", req, { passive: true }); addEventListener("resize", req); morph();
+
+  // the ginger egg button follows the cursor over the reel (centred on touch screens)
+  if (matchMedia("(hover: hover)").matches) {
+    let tx = 0, ty = 0, cx = 0, cy = 0, raf = 0;
+    const follow = () => {
+      cx += (tx - cx) * 0.18; cy += (ty - cy) * 0.18;
+      play.style.translate = `${cx}px ${cy}px`;
+      raf = (Math.abs(tx - cx) > 0.3 || Math.abs(ty - cy) > 0.3) ? requestAnimationFrame(follow) : 0;
+    };
+    const go = () => { if (!raf) raf = requestAnimationFrame(follow); };
+    win.addEventListener("pointermove", e => {
+      const r = win.getBoundingClientRect();
+      tx = e.clientX - r.left - r.width / 2; ty = e.clientY - r.top - r.height / 2; go();
+    });
+    win.addEventListener("pointerleave", () => { tx = 0; ty = 0; go(); });
+  }
+
+  // full reel with sound, opened with the same shell crack as the projects
+  let closingReel = false;
+  const openReel = () => {
+    if (!rov.hidden || !id) return;
+    frame.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&playsinline=1"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+      referrerpolicy="strict-origin-when-cross-origin" allowfullscreen title="Voja Studio showreel"></iframe>`;
+    rov.hidden = false; document.body.style.overflow = "hidden";
+    crackIn(rov); rclose.focus({ preventScroll: true });
+  };
+  const closeReel = () => {
+    if (rov.hidden || closingReel) return;
+    closingReel = true;
+    crackOut(() => { rov.hidden = true; frame.innerHTML = ""; document.body.style.overflow = ""; closingReel = false; play.focus({ preventScroll: true }); }, rov);
+  };
+  win.addEventListener("click", openReel);
+  rclose.addEventListener("click", closeReel);
+  addEventListener("keydown", e => { if (e.key === "Escape") closeReel(); });
+})();
 
 /* ---------- projects that hatch: hover (or scroll to, on phones) and the cover cracks open ---------- */
 (function () {
