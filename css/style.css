@@ -386,3 +386,33 @@ html, body{overscroll-behavior-y:none}
   .card-crack polyline{transition:stroke-dashoffset .2s ease-in .5s!important}
   .card.hatch.hatched .card-crack polyline{transition:stroke-dashoffset .18s ease-out!important}
 }
+
+/* ---------- showreel ---------- */
+.reel{padding-top:clamp(8px,2vw,24px); padding-bottom:clamp(40px,6vw,88px); scroll-margin-top:72px}
+.reel-win{position:relative; aspect-ratio:16/9; background:var(--ink); overflow:hidden; cursor:pointer; isolation:isolate}
+.reel-media{position:absolute; inset:0; will-change:transform}
+.reel-media iframe{position:absolute; top:50%; left:50%; width:100%; height:100%; border:0; pointer-events:none; transform:translate(-50%,-50%) scale(1.22)}
+.reel-media video, .reel-poster, .reel-poster img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block}
+.reel-poster{transition:opacity .8s ease}
+.reel-poster.gone{opacity:0}
+.reel-play{position:absolute; left:50%; top:50%; z-index:2; width:104px; height:128px; margin:-64px 0 0 -52px; padding:0; border:0;
+  border-radius:50% 50% 50% 50% / 58% 58% 42% 42%; background:var(--ginger); color:#fff; cursor:pointer;
+  font:700 14px/1.15 var(--display); letter-spacing:.02em; text-transform:uppercase; box-shadow:0 10px 30px rgba(0,0,0,.25);
+  transform:scale(0) rotate(-12deg); transition:transform .45s cubic-bezier(.3,1.5,.5,1)}
+.reel-play span{display:block; padding-top:10px}
+.reel-win.open .reel-play{transform:scale(1) rotate(0)}
+.reel-win.open:hover .reel-play{transform:scale(1.08) rotate(-4deg)}
+.reel-win.open:active .reel-play{transform:scale(.94)}
+@media (hover:hover){ .reel-win.open{cursor:none} }
+.reel-cap{display:flex; justify-content:space-between; gap:16px; margin-top:14px}
+.reel-ov{position:fixed; inset:0; z-index:20; background:var(--ink); display:flex; align-items:center; justify-content:center;
+  padding:72px calc(var(--gutR) + 2vw) 32px calc(var(--gut) + 2vw)}
+.reel-ov .x{position:absolute; top:calc(16px + env(safe-area-inset-top,0px)); right:calc(var(--gutR) + 2vw); font:600 14px/1 var(--body); background:none;
+  border:1.5px solid var(--parchment); color:var(--parchment); border-radius:999px; padding:10px 16px; cursor:pointer}
+.reel-frame{width:min(100%, calc((100vh - 120px) * 16 / 9)); aspect-ratio:16/9; border-radius:14px; overflow:hidden; background:#000}
+.reel-frame iframe{width:100%; height:100%; border:0; display:block}
+@media (max-width:640px){ .reel-play{width:80px; height:98px; margin:-49px 0 0 -40px; font-size:12px} }
+@media (prefers-reduced-motion:reduce){
+  .reel-play{transition:transform .45s cubic-bezier(.3,1.5,.5,1)!important}
+  .reel-poster{transition:opacity .8s ease!important}
+}
