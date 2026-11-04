@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Manrope:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="css/style.css?v=22">
+<link rel="stylesheet" href="css/style.css?v=23">
 </head>
 <body>
 <div id="intro" aria-hidden="true">
@@ -51,6 +51,7 @@
     <button class="menu-btn" id="menu-btn" type="button" aria-expanded="false" aria-controls="main-nav"><span id="menu-txt">Menu</span><i aria-hidden="true"></i></button>
     <nav class="links" id="main-nav" aria-label="Main">
       <a href="#work">Work</a>
+      <a href="#reel">Reel</a>
       <a href="#about">About</a>
       <a href="#contact" class="cta">Contact</a>
     </nav>
@@ -76,6 +77,17 @@
       <div class="disc"><span class="chip">3D &amp; CGI</span><span class="chip">Motion</span><span class="chip">Packaging</span><span class="chip">Branding</span><span class="chip">Archviz</span></div>
     </div>
    </div>
+  </section>
+
+  <!-- Showreel: put the YouTube link in data-youtube. For the cleanest look, also export a silent 10-15 s
+       loop (.mp4, 1080p, under ~5 MB), save it as reel/loop.mp4 and set data-loop="reel/loop.mp4". -->
+  <section class="reel wrap" id="reel" aria-label="Showreel"
+    data-youtube="https://www.youtube.com/watch?v=ngYjbsAivRI" data-loop="">
+    <div class="reel-win" id="reel-win">
+      <div class="reel-media" id="reel-media"></div>
+      <button class="reel-play" id="reel-play" type="button" aria-label="Play the showreel with sound"><span>Play<br>reel</span></button>
+    </div>
+    <div class="reel-cap"><span class="label">Showreel</span><span class="label">3D · Motion · Archviz</span></div>
   </section>
 
   <section class="work wrap" id="work">
@@ -165,7 +177,11 @@
 </div>
 
 <svg class="goo-defs" aria-hidden="true" style="position:absolute;width:0;height:0"><filter id="goo2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur in="SourceGraphic" stdDeviation="5" result="b"/><feColorMatrix in="b" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9"/></filter></svg>
-<script src="js/projects.js?v=22"></script>
-<script src="js/main.js?v=22"></script>
+<div class="reel-ov" id="reel-ov" hidden role="dialog" aria-modal="true" aria-label="Voja Studio showreel">
+  <button class="x" id="reel-close" type="button">Close ✕</button>
+  <div class="reel-frame" id="reel-frame"></div>
+</div>
+<script src="js/projects.js?v=23"></script>
+<script src="js/main.js?v=23"></script>
 </body>
 </html>
