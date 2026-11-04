@@ -388,7 +388,7 @@ addEventListener("keydown", e => { if (e.key === "Escape") setMenu(false); });
   const apply = () => {
     ticking = false;
     const y = Math.min(scrollY, innerHeight * 1.2);
-    mark.style.translate = `0 ${y * 0.32}px`;   // the egg feels furthest away
+    mark.style.translate = `0 ${y * 0.14}px`;   // the egg moves with the title
     h1.style.translate = `0 ${y * 0.14}px`;
     sub.style.translate = `0 ${y * 0.05}px`;
   };
