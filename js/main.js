@@ -83,8 +83,9 @@ function cardMedia(p, i) {
   if (!isHatch(p)) return coverTag(p, i);
   const inside = p.loop ? `<video data-src="${esc(p.loop)}" muted loop playsinline preload="none"></video>`
                         : `<canvas data-i="${i}" data-v="1" aria-hidden="true"></canvas>`;
-  return `<div class="hatch-in">${inside}</div><div class="shell s-top">${coverTag(p, i)}</div><div class="shell s-bot">${coverTag(p, i)}</div>` +
-    `<svg class="card-crack" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="${CRACK}"/></svg>`;
+  // the crack line sits on the cut: each half keeps its side of the line as an orange rim and carries it away
+  const rim = `<svg class="card-crack" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="${CRACK}"/></svg>`;
+  return `<div class="hatch-in">${inside}</div><div class="shell s-top">${coverTag(p, i)}${rim}</div><div class="shell s-bot">${coverTag(p, i)}${rim}</div>`;
 }
 
 /* ---------- before / after slider (project pages) ---------- */
@@ -173,22 +174,38 @@ const CRACK_PTS = [[0,52],[8,47],[17,55],[26,46],[35,54],[44,45],[53,55],[62,46]
 const crackClip = s => `polygon(${CRACK_PTS.map(([x, y]) => `${x}% ${y - s}%`).join(",")},${[...CRACK_PTS].reverse().map(([x, y]) => `${x}% ${y + s}%`).join(",")})`;
 const fx = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 fx.id = "crackfx"; fx.setAttribute("viewBox", "0 0 100 100"); fx.setAttribute("preserveAspectRatio", "none"); fx.setAttribute("aria-hidden", "true");
-fx.innerHTML = `<polyline points="${CRACK_PTS.map(p => p.join(",")).join(" ")}"/>`;
+const PTS = CRACK_PTS.map(p => p.join(",")).join(" ");
+fx.innerHTML = `<polyline class="whole" points="${PTS}"/><polyline class="rim" points="${PTS}"/><polyline class="rim" points="${PTS}"/>`;
 document.body.appendChild(fx);
-const fxLine = fx.firstChild;
-const stopFx = () => [fx, fxLine, ov].forEach(el => el.getAnimations().forEach(a => a.cancel()));
+const [fxLine, rimTop, rimBot] = fx.children;
+const EASE = "cubic-bezier(.7,0,.2,1)";
+const stopFx = () => [fx, ...fx.children, ov].forEach(el => el.getAnimations().forEach(a => a.cancel()));
+// open: the crack runs across the screen, then splits in two and each edge rides out with the opening
 function crackIn() {
   stopFx();
-  fxLine.animate([{ strokeDashoffset: 4000 }, { strokeDashoffset: 0 }], { duration: 170, easing: "ease-out", fill: "forwards" });
-  fx.animate([{ opacity: 1 }, { opacity: 1, offset: .45 }, { opacity: 0 }], { duration: 480, fill: "forwards" });
-  ov.animate([{ clipPath: crackClip(0) }, { clipPath: crackClip(62) }], { duration: 560, delay: 140, easing: "cubic-bezier(.7,0,.2,1)", fill: "backwards" });
+  fx.style.opacity = 1;
+  fxLine.animate([{ strokeDashoffset: 4000, visibility: "visible" }, { strokeDashoffset: 0, visibility: "visible" }], { duration: 170, easing: "ease-out", fill: "forwards" });
+  fxLine.animate([{ visibility: "hidden" }, { visibility: "hidden" }], { duration: 1, delay: 170, fill: "forwards" });
+  const split = { duration: 560, delay: 170, easing: EASE, fill: "forwards" };
+  rimTop.animate([{ transform: "translateY(0)", visibility: "visible" }, { transform: "translateY(-62px)", visibility: "visible" }], split);
+  rimBot.animate([{ transform: "translateY(0)", visibility: "visible" }, { transform: "translateY(62px)", visibility: "visible" }], split);
+  ov.animate([{ clipPath: crackClip(0) }, { clipPath: crackClip(62) }], { duration: 560, delay: 170, easing: EASE, fill: "backwards" })
+    .finished.then(() => { fx.style.opacity = 0; }, () => {});
 }
+// close: the two edges come back together, meet as one crack, and the crack heals away
 function crackOut(done) {
   stopFx();
-  fxLine.animate([{ strokeDashoffset: 0 }, { strokeDashoffset: 0 }], { duration: 1, fill: "forwards" });
-  fx.animate([{ opacity: 0 }, { opacity: 0, offset: .72 }, { opacity: 1, offset: .82 }, { opacity: 0 }], { duration: 620, fill: "forwards" });
-  ov.animate([{ clipPath: crackClip(62) }, { clipPath: crackClip(0) }], { duration: 440, easing: "cubic-bezier(.7,0,.2,1)", fill: "forwards" })
-    .finished.then(() => { done(); ov.getAnimations().forEach(a => a.cancel()); }, () => done());
+  fx.style.opacity = 1;
+  const meet = { duration: 440, easing: EASE, fill: "forwards" };
+  rimTop.animate([{ transform: "translateY(-62px)", visibility: "visible" }, { transform: "translateY(0)", visibility: "visible" }], meet);
+  rimBot.animate([{ transform: "translateY(62px)", visibility: "visible" }, { transform: "translateY(0)", visibility: "visible" }], meet);
+  ov.animate([{ clipPath: crackClip(62) }, { clipPath: crackClip(0) }], meet)
+    .finished.then(() => {
+      done(); ov.getAnimations().forEach(a => a.cancel());
+      [rimTop, rimBot].forEach(r => r.getAnimations().forEach(a => a.cancel()));
+      fxLine.animate([{ strokeDashoffset: 0, visibility: "visible" }, { strokeDashoffset: -4000, visibility: "visible" }],
+        { duration: 220, easing: "ease-in" }).finished.then(() => { fx.style.opacity = 0; }, () => {});
+    }, () => done());
 }
 const DEFAULT_TITLE = document.title;
 function route() { const h = location.hash.slice(1); if (h.startsWith("p-")) openProject(h.slice(2)); else closeProject(false); }
