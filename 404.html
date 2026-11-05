@@ -4,24 +4,67 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Page not found · Voja Studio</title>
-<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#323232">
+<link rel="icon" href="/assets/favicon.svg?v=3" type="image/svg+xml">
+<link rel="icon" href="/assets/favicon-32.png?v=2" sizes="32x32" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400&family=Manrope:wght@500;600&display=swap">
 <style>
-body{margin:0; min-height:100vh; display:grid; place-items:center; background:#323232; color:#EBEBDF; font-family:"Manrope",Arial,sans-serif; padding:24px; box-sizing:border-box; text-align:center}
-main{display:flex; flex-direction:column; align-items:center; gap:20px}
-svg{width:96px; height:auto; transform:rotate(-14deg)}
-h1{font-family:"Outfit",Arial,sans-serif; font-weight:300; font-size:clamp(40px,8vw,80px); line-height:1; margin:0; letter-spacing:-.03em}
-h1 em{font-style:normal; color:#E9631A}
-p{margin:0; color:rgba(235,235,223,.75); max-width:36ch}
-a{color:#323232; background:#E9631A; text-decoration:none; font-weight:600; padding:13px 22px; border-radius:999px; color:#fff}
+:root{--parchment:#EBEBDF; --ink:#323232; --azure:#A9C2E0; --ginger:#E9631A}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0; background:var(--ink); color:var(--parchment); font-family:"Manrope","Helvetica Neue",Arial,sans-serif; display:flex; flex-direction:column; -webkit-font-smoothing:antialiased}
+.wrap{width:min(1240px,100% - 2*clamp(16px,4vw,48px)); margin-inline:auto}
+header{padding-block:22px}
+header .wrap{display:flex; justify-content:space-between; align-items:center; gap:16px}
+.logo{display:block; height:30px} .logo svg{height:100%; width:auto; display:block}
+.logo .shell{fill:var(--azure)} .logo .word path{fill:var(--parchment)}
+nav{display:flex; gap:clamp(14px,3vw,32px)}
+nav a{color:rgba(235,235,223,.7); text-decoration:none; font-size:15px; font-weight:500; transition:color .2s}
+nav a:hover{color:var(--parchment)}
+main{flex:1; display:grid; place-items:center; padding-block:40px 72px}
+.box{display:grid; grid-template-columns:auto 1fr; gap:clamp(28px,6vw,80px); align-items:center}
+.egg{width:clamp(130px,20vw,230px); transform-origin:50% 92%; animation:rock 3.2s ease-in-out 1s infinite}
+.egg svg{width:100%; height:auto; display:block; overflow:visible; animation:knock 5s ease-out 2s infinite}
+.egg .cr{fill:var(--ink)}
+.label{font-weight:600; font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:rgba(235,235,223,.6)}
+h1{font-family:"Outfit","Helvetica Neue",Arial,sans-serif; font-weight:400; font-size:clamp(42px,7.5vw,104px); line-height:.95; letter-spacing:-.035em; margin:14px 0 18px; text-wrap:balance}
+h1 em{font-style:normal; color:var(--ginger)}
+p{margin:0 0 28px; color:rgba(235,235,223,.75); max-width:40ch; font-size:17px; line-height:1.55}
+.btns{display:flex; gap:10px; flex-wrap:wrap}
+.btn{font:600 14px/1 "Manrope",Arial,sans-serif; border:1.5px solid var(--ginger); background:var(--ginger); color:#fff; border-radius:999px; padding:13px 20px; text-decoration:none; transition:transform .2s}
+.btn:hover{transform:translateY(-2px)}
+.btn.ghost{background:transparent; border-color:currentColor; color:var(--parchment)}
+@keyframes rock{0%,37.5%,100%{transform:rotate(0)}7.5%{transform:rotate(-7deg)}15%{transform:rotate(5deg)}22.5%{transform:rotate(-3deg)}30%{transform:rotate(1deg)}}
+@keyframes knock{0%,7.8%,9%,15.6%,100%{scale:1; translate:0 0}
+  1.8%{scale:1.045 .965; translate:0 0} 3.6%{scale:.975 1.04; translate:0 -4px} 5.4%{scale:1.01 .995; translate:0 0}
+  10.2%{scale:1.03 .975; translate:0 0} 12%{scale:.985 1.025; translate:0 -2px} 13.8%{scale:1.005 1; translate:0 0}}
+@media (max-width:640px){ nav{display:none} .box{grid-template-columns:1fr; justify-items:start} .egg{width:110px} }
 </style>
 </head>
 <body>
-<main>
-  <svg viewBox="0 150 470 580" aria-hidden="true"><path fill="#A9C2E0" fill-rule="evenodd" d="M214 715C177 712 141 700 110 679C95 669 88 663 75 651C56 632 43 613 31 590C-3 520 5 438 56 354C73 325 96 292 116 268C127 256 153 229 164 219C205 184 247 164 288 160C331 156 366 175 396 219C431 270 451 347 454 440C455 489 448 537 434 572C402 653 327 709 243 715C228 716 229 716 214 715ZM392 485C403 478 409 459 409 434C409 415 406 397 399 376C394 363 392 358 385 352C376 343 367 341 360 347C353 352 353 358 357 373C362 395 364 416 362 446L361 468L363 473C369 486 382 492 392 485ZM363 317C368 313 370 309 370 302C369 288 356 276 348 279C344 280 340 285 339 290C337 296 338 307 341 311C345 319 356 322 363 317Z"/></svg>
-  <h1>This one hasn't <em>hatched</em> yet.</h1>
-  <p>The page you were looking for doesn't exist or has moved.</p>
-  <a href="/">Back to Voja Studio</a>
-</main>
+<header><div class="wrap">
+  <a class="logo" href="/" aria-label="Voja Studio, home">
+      <svg viewBox="0 0 2402 922" role="img" aria-hidden="true"><g class="egg"><path class="shell" fill-rule="evenodd" fill="#A9C2E0" d="M214 715C177 712 141 700 110 679C95 669 88 663 75 651C56 632 43 613 31 590C-3 520 5 438 56 354C73 325 96 292 116 268C127 256 153 229 164 219C205 184 247 164 288 160C331 156 366 175 396 219C431 270 451 347 454 440C455 489 448 537 434 572C402 653 327 709 243 715C228 716 229 716 214 715ZM392 485C403 478 409 459 409 434C409 415 406 397 399 376C394 363 392 358 385 352C376 343 367 341 360 347C353 352 353 358 357 373C362 395 364 416 362 446L361 468L363 473C369 486 382 492 392 485ZM363 317C368 313 370 309 370 302C369 288 356 276 348 279C344 280 340 285 339 290C337 296 338 307 341 311C345 319 356 322 363 317Z"/></g><g class="word"><path fill-rule="evenodd" d="M1620 912C1579 907 1547 891 1516 860L1508 851L1543 816L1578 780L1585 787C1600 804 1617 810 1642 810C1656 810 1665 808 1676 802C1686 797 1697 787 1701 778C1707 764 1707 785 1707 493L1707 228L1762 228L1817 228L1817 492C1817 669 1817 760 1816 767C1813 797 1805 821 1790 842C1782 855 1761 876 1749 884C1727 898 1703 908 1677 911C1665 913 1633 913 1620 912ZM1334 714C1254 707 1183 662 1142 593C1123 561 1113 528 1109 490C1107 475 1108 440 1110 426C1119 374 1141 329 1179 291C1230 241 1294 216 1366 218C1386 219 1400 221 1417 225C1500 243 1569 305 1595 386C1604 413 1607 435 1607 466C1607 497 1604 518 1595 546C1569 624 1502 687 1422 707C1394 714 1363 716 1334 714ZM2120 714C2092 712 2065 705 2040 693C1974 660 1926 596 1913 520C1909 499 1908 482 1908 459C1909 416 1917 384 1934 348C1948 322 1962 302 1984 280C2028 238 2085 216 2146 218C2198 220 2239 237 2273 270L2283 280L2283 259L2284 238L2286 235C2291 228 2291 228 2338 228C2380 228 2381 228 2384 230C2387 231 2389 234 2390 236L2392 240L2392 466C2392 693 2392 694 2390 697C2389 699 2387 701 2384 703L2380 705L2336 705L2294 704L2290 702C2284 698 2283 694 2283 673L2283 654L2274 663C2258 678 2244 687 2225 696C2195 710 2156 717 2120 714ZM811 703C807 701 820 728 698 462C622 295 598 241 598 239C598 236 599 234 601 231L605 228L656 228C713 228 712 228 715 234C716 235 743 298 775 373C807 448 834 510 835 512C838 517 847 517 851 512C852 511 879 448 912 373C944 298 971 236 972 234C975 228 974 228 1028 228L1077 228L1081 231C1083 234 1084 236 1084 239C1084 241 1059 298 979 472C887 674 874 702 872 703C869 705 866 705 841 705C818 705 813 705 811 703ZM2178 610C2206 605 2229 594 2249 574C2276 547 2290 511 2290 467C2290 413 2269 368 2231 343C2209 329 2185 322 2156 322C2102 322 2060 347 2037 393C2024 418 2019 445 2021 479C2025 548 2071 602 2135 610C2145 611 2167 611 2178 610ZM1388 606C1430 597 1463 571 1481 534C1500 493 1500 440 1481 400C1465 366 1434 340 1400 330C1371 321 1333 322 1307 332C1269 347 1240 377 1228 415C1223 431 1221 445 1221 466C1221 500 1228 527 1246 552C1265 582 1299 603 1336 608C1348 609 1378 608 1388 606ZM1749 139C1731 135 1715 123 1706 105C1701 96 1700 88 1700 76C1700 56 1705 41 1719 28C1732 15 1745 10 1764 10C1788 10 1805 18 1817 36C1823 44 1826 51 1828 62C1835 98 1813 132 1780 140C1771 141 1758 141 1749 139Z"/></g></svg>
+    </a>
+  <nav aria-label="Main"><a href="/#reel">Reel</a><a href="/#work">Work</a><a href="/#about">About</a><a href="/#contact">Contact</a></nav>
+</div></header>
+<main><div class="wrap box">
+  <div class="egg" aria-hidden="true"><svg viewBox="0 150 470 580"><path fill="#A9C2E0" fill-rule="evenodd" d="M214 715C177 712 141 700 110 679C95 669 88 663 75 651C56 632 43 613 31 590C-3 520 5 438 56 354C73 325 96 292 116 268C127 256 153 229 164 219C205 184 247 164 288 160C331 156 366 175 396 219C431 270 451 347 454 440C455 489 448 537 434 572C402 653 327 709 243 715C228 716 229 716 214 715ZM392 485C403 478 409 459 409 434C409 415 406 397 399 376C394 363 392 358 385 352C376 343 367 341 360 347C353 352 353 358 357 373C362 395 364 416 362 446L361 468L363 473C369 486 382 492 392 485ZM363 317C368 313 370 309 370 302C369 288 356 276 348 279C344 280 340 285 339 290C337 296 338 307 341 311C345 319 356 322 363 317Z"/><path class="cr" d="M10.7 465.9 L93.4 428.8 L169.1 479.9 L244.0 420.8 L319.9 477.7 L395.1 424.4 L445.9 446.4 L446.1 445.8 L394.9 421.6 L320.1 472.3 L244.0 413.2 L168.9 470.1 L94.6 417.2 L5.3 453.3Z"/></svg></div>
+  <div>
+    <span class="label">Error 404</span>
+    <h1>This one hasn't <em>hatched</em> yet.</h1>
+    <p>The page you were looking for doesn't exist or has moved. The work is still warm, though.</p>
+    <div class="btns">
+      <a class="btn" href="/#work">See the work</a>
+      <a class="btn ghost" href="/#reel">Watch the reel</a>
+      <a class="btn ghost" href="/">Home</a>
+    </div>
+  </div>
+</div></main>
+<!-- visitor stats: GoatCounter, cookie-free. Dashboard: https://vojastudio.goatcounter.com -->
+<script data-goatcounter="https://vojastudio.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>
