@@ -305,6 +305,16 @@ function closeProject(clearHash = true) {
   if (booted) { closing = true; crackOut(finish); } else finish();
 }
 
+/* ---------- the voja logo (header and project page) always goes back to the top of the homepage ---------- */
+document.querySelectorAll("a.logo").forEach(a => a.addEventListener("click", e => {
+  if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;   // new tab etc. still works
+  e.preventDefault();
+  if (typeof setMenu === "function") setMenu(false);
+  history.replaceState(null, "", location.pathname);
+  if (!ov.hidden) { lastScroll = 0; closeProject(false); }
+  else scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+}));
+
 /* ---------- shell-crack page transition: a crack runs across the screen and the project splits open along it ---------- */
 let booted = false, closing = false;
 const CRACK_PTS = [[0,52],[8,47],[17,55],[26,46],[35,54],[44,45],[53,55],[62,46],[71,54],[80,46],[89,55],[100,49]];
