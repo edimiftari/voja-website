@@ -13,16 +13,19 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Voja Studio">
 <meta property="og:title" content="Voja Studio · Ideas that hatch">
-<meta property="og:description" content="3D and motion design studio in Prishtina.">
+<meta property="og:description" content="3D, CGI and motion design studio in Prishtina. Product renders, animation, packaging and archviz.">
 <meta property="og:url" content="https://vojastudio.com/">
-<meta property="og:image" content="https://vojastudio.com/assets/og-image.png">
+<meta property="og:image" content="https://vojastudio.com/assets/og-image.jpg?v=2">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:alt" content="Voja Studio: Ideas that hatch. A red fire hydrant 3D render beside the voja logo.">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://vojastudio.com/assets/og-image.jpg?v=2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Manrope:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="css/style.css?v=40">
+<link rel="stylesheet" href="css/style.css?v=41">
 </head>
 <body>
 <div id="intro" aria-hidden="true">
@@ -102,6 +105,7 @@
     <div class="wrap">
       <div class="shead"><h2>Voja Studio</h2><span class="label">About Voja Studio</span></div>
       <div class="cols">
+        <figure class="portrait"><img src="assets/edi.jpg?v=1" width="800" height="800" loading="lazy" decoding="async" alt="Edi Miftari, creative director of Voja Studio"><figcaption><span>Edi Miftari</span><span class="label">Creative director</span></figcaption></figure>
         <p class="big">Before the renders and the boxes, there was architecture school.</p>
         <div class="side">
           <p>Voja Studio is led by Edi Miftari, creative director, with a degree in architecture and years of work across 3D visualisation, motion design, packaging, branding and graphic design.</p>
@@ -132,16 +136,35 @@
       <span class="label">Contact</span>
       <h2>Hatch your next <em>big idea.</em></h2>
       <div class="row">
-        <div class="mailbox">
-          <span class="label">Write to</span>
-          <p class="mail" id="mail">studiovoja@gmail.com</p>
-          <div class="btns">
-            <button class="btn" id="copy" type="button">Copy email</button>
-            <a class="btn ghost" href="mailto:studiovoja@gmail.com">Open mail app</a>
+        <form class="cform" id="cform" action="https://formsubmit.co/studiovoja@gmail.com" method="POST" novalidate>
+          <div class="f2">
+            <label><span class="label">Name</span><input name="name" type="text" autocomplete="name" required maxlength="120"></label>
+            <label><span class="label">Email</span><input name="email" type="email" autocomplete="email" required maxlength="160"></label>
           </div>
-        </div>
+          <fieldset class="ptype"><legend class="label">Project type</legend>
+            <label><input type="radio" name="project" value="3D &amp; CGI" checked><span>3D &amp; CGI</span></label>
+            <label><input type="radio" name="project" value="Motion"><span>Motion</span></label>
+            <label><input type="radio" name="project" value="Packaging &amp; Branding"><span>Packaging &amp; Branding</span></label>
+            <label><input type="radio" name="project" value="Archviz"><span>Archviz</span></label>
+            <label><input type="radio" name="project" value="Other"><span>Other</span></label>
+          </fieldset>
+          <label><span class="label">Tell me about the project</span><textarea name="message" rows="5" required maxlength="4000"></textarea></label>
+          <input class="hp" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <div class="fend">
+            <button class="btn" type="submit">Send message</button>
+            <p class="fstatus" id="fstatus" role="status" aria-live="polite"></p>
+          </div>
+        </form>
         <div class="info">
-          <span class="label">Voja Studio</span>
+          <div class="mailbox">
+            <span class="label">Or write to</span>
+            <p class="mail" id="mail">studiovoja@gmail.com</p>
+            <div class="btns">
+              <button class="btn ghost" id="copy" type="button">Copy email</button>
+              <a class="btn ghost" href="mailto:studiovoja@gmail.com">Open mail app</a>
+            </div>
+          </div>
+          <span class="label">Studio</span>
           <p class="place">Prishtinë, Kosovë</p>
           <div class="socials">
             <!-- social icons: Font Awesome Free 6.5.2, CC BY 4.0, fontawesome.com -->
@@ -183,6 +206,8 @@
   <div class="reel-frame" id="reel-frame"></div>
 </div>
 <script src="js/projects.js?v=40"></script>
-<script src="js/main.js?v=40"></script>
+<script src="js/main.js?v=41"></script>
+<!-- visitor stats: GoatCounter, cookie-free. Dashboard: https://vojastudio.goatcounter.com -->
+<script data-goatcounter="https://vojastudio.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>
