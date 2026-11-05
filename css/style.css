@@ -83,7 +83,11 @@ section{scroll-margin-top:80px}
 .work{padding-block:16px 112px}
 .grid{display:grid; grid-template-columns:repeat(12,1fr); gap:clamp(20px,2.4vw,36px) clamp(14px,1.8vw,24px)}
 .card{grid-column:span 4; text-decoration:none; display:flex; flex-direction:column; gap:14px; min-width:0}
-.card.w6{grid-column:span 6}.card.w8{grid-column:span 8}
+.card.w6{grid-column:span 6}.card.w8{grid-column:span 8}.card.w4{grid-column:span 4}
+.cat-head{grid-column:1 / -1; display:flex; justify-content:space-between; align-items:baseline; gap:16px; border-top:1px solid var(--rule); padding-top:18px; margin-top:clamp(16px,3vw,40px)}
+.cat-head:first-child{margin-top:0}
+.cat-head h3{font:400 clamp(24px,2.6vw,34px)/1.1 var(--display); letter-spacing:-.02em; margin:0}
+.cat-head[hidden]{display:none}
 .card .plate{aspect-ratio:4/3; max-width:100%; border-radius:18px; overflow:hidden; position:relative; background:var(--sheet)}
 .card.w8 .plate, .card.w6 .plate{aspect-ratio:16/10}
 .grid.filtered .card{grid-column:span 4}.grid.filtered .card .plate{aspect-ratio:4/3}
@@ -182,7 +186,7 @@ footer .top-link{font-size:15px; font-weight:500; text-decoration:none; border-b
 }
 
 @media (max-width:900px){
-  .card, .card.w6, .card.w8, .grid.filtered .card{grid-column:span 6}
+  .card, .card.w4, .card.w6, .card.w8, .grid.filtered .card{grid-column:span 6}
   .hero h1{grid-column:1 / -1}.hero .mark{grid-column:1 / -1; justify-self:start; width:120px; order:-1}
   .hero .sub p,.hero .sub .disc{grid-column:1 / -1; justify-content:flex-start}
   .about .big,.about .side{grid-column:1 / -1}
