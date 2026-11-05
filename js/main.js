@@ -187,8 +187,26 @@ filters.addEventListener("click", e => {
   grid.querySelectorAll(".card").forEach(el => { el.hidden = !(c === "All" || el.dataset.cat === c); });
   grid.querySelectorAll(".cat-head").forEach(el => { el.hidden = c !== "All"; });
   grid.classList.toggle("filtered", c !== "All");
-  paintAll();
+  paintAll(); fitAll();
 });
+/* ---------- tall covers: never crop the product ----------
+   If a cover is clearly taller than its card (portrait or square renders), show the whole image instead of cropping it.
+   The spare sides are filled with a soft, blurred copy of the same image, so the card still reads as one picture. */
+function fitCover(img) {
+  const plate = img.closest(".plate"); if (!plate || !img.naturalWidth || !plate.clientHeight) return;
+  const tall = img.naturalWidth / img.naturalHeight < (plate.clientWidth / plate.clientHeight) * 0.92;
+  let fill = img.previousElementSibling;
+  if (tall && !(fill && fill.classList.contains("cover-fill"))) {
+    fill = document.createElement("div"); fill.className = "cover-fill"; fill.setAttribute("aria-hidden", "true");
+    fill.style.backgroundImage = `url("${img.currentSrc || img.src}")`; img.before(fill);
+  }
+  img.classList.toggle("fit", tall);
+  if (fill && fill.classList.contains("cover-fill")) fill.hidden = !tall;
+}
+function fitAll() { grid.querySelectorAll(".plate img").forEach(fitCover); }
+grid.querySelectorAll(".plate img").forEach(img => { if (img.complete) fitCover(img); else img.addEventListener("load", () => fitCover(img), { once: true }); });
+addEventListener("resize", () => { clearTimeout(fitAll.t); fitAll.t = setTimeout(fitAll, 150); });
+
 function paintAll() {
   grid.querySelectorAll("canvas").forEach(cv => { if (cv.offsetParent) paint(cv, PROJECTS[cv.dataset.i].placeholder, +(cv.dataset.v || 0)); });
 }
@@ -217,6 +235,11 @@ function openProject(id) {
   gal.querySelectorAll(".compare").forEach(el => {
     const r = el.querySelector(".cmp-range");
     r.addEventListener("input", () => el.style.setProperty("--pos", r.value + "%"));
+    // image sliders take the render's own shape (portrait stays portrait), at most 85% of the screen tall
+    const im = el.querySelector(".cmp-after img");
+    const shape = () => { if (!im.naturalWidth) return; const k = im.naturalWidth / im.naturalHeight;
+      el.style.aspectRatio = k; el.style.width = `min(100%, ${(85 * k).toFixed(2)}vh)`; el.style.justifySelf = "center"; };
+    if (im) { if (im.complete) shape(); else im.addEventListener("load", shape, { once: true }); }
     syncCompare(el);
   });
   // more projects: previous / next in the same category, plus a jump to each other category
