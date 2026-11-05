@@ -642,7 +642,7 @@ document.getElementById("copy").addEventListener("click", async e => {
 
 /* ---------- contact form, sends to studiovoja@gmail.com ---------- */
 // Web3Forms access key (free, from web3forms.com, tied to studiovoja@gmail.com). Public by design, safe to keep here.
-const WEB3FORMS_KEY = "";
+const WEB3FORMS_KEY = "f2fbc173-bcbc-4e6f-a430-eadae725cab1";
 (() => {
   const f = document.getElementById("cform"); if (!f) return;
   const st = document.getElementById("fstatus"), btn = f.querySelector("button[type=submit]");
