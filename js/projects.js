@@ -34,6 +34,9 @@
                   Several sliders on one page? Use a list: compare: [ {...}, {...} ]
                   With two videos (wireframe as "before", render as "after") both play together, frame-locked;
                   only the render plays sound, via the speaker button in the corner. Same length, fps and size.
+   - ratio        optional cover shape, width / height (e.g. 0.5625 for a 9:16 vertical video, 0.8 for 4:5).
+                  Portrait and square covers are never cropped: they get their own row of tall cards.
+                  Left out, it's measured from the cover automatically.
    - placeholder  the drawn stand-in shown until you add a cover (you can ignore it)
 
    The order of the list is the order on the site.
@@ -90,6 +93,7 @@ window.VOJA_PROJECTS = [
     role: "Modelling, look dev, lighting, rendering",
     tools: "Blender",
     description: "A one-litre juice carton with condensation droplets and a bed of mangoes, built for a packshot. Drag the slider to see the wireframe underneath.",
+    ratio: 0.8,                  // cover shape (width / height); portrait and square covers keep their shape
     cover: "projects/mango-juice/render.jpg",
     youtube: "",
     media: [],
@@ -106,6 +110,7 @@ window.VOJA_PROJECTS = [
     role: "Modelling, look dev, lighting, rendering",
     tools: "Blender",
     description: "An amber glass jar with a piped swirl of whipped cream, modelled and lit for e-commerce. Drag the slider to see the wireframe underneath.",
+    ratio: 1,                  // cover shape (width / height); portrait and square covers keep their shape
     cover: "projects/tallow-cream/render.jpg",
     youtube: "",
     media: [],
