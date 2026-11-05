@@ -231,6 +231,10 @@ header.top .menu-btn{color:#EBEBDF}
 /* real images and videos */
 .card .plate img, .card .plate video{width:100%; height:100%; object-fit:cover; display:block; transition:transform .9s cubic-bezier(.2,.7,.1,1)}
 .card:hover .plate img, .card:hover .plate video{transform:scale(1.04)}
+.card .plate img.fit{object-fit:contain; position:relative; z-index:1}   /* tall covers shown whole... */
+.card .cover-fill{position:absolute; inset:-8%; background:center/cover no-repeat; filter:blur(22px); pointer-events:none}
+.card .view, .card .play{z-index:2}   /* ...over a blurred copy of themselves */
+.card .cover-fill[hidden]{display:none}
 .gallery figure{margin:0}
 .gallery .g.real{aspect-ratio:auto; background:none; display:flex; flex-direction:column; gap:8px}
 .gallery .g.real img, .gallery .g.real video{width:100%; height:auto; display:block; border-radius:18px; background:var(--sheet)}
