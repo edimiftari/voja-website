@@ -355,10 +355,13 @@ html, body{overscroll-behavior-y:none}
 .hero .mark.open .egg, .hero .mark.open .h-crack{visibility:hidden}
 .hero .mark.open .h-top, .hero .mark.open .h-bot{visibility:visible}
 .hero .mark.open .wob{animation-play-state:paused}
-.yolk-splat{position:absolute; z-index:8; width:240px; height:240px; filter:url(#goo2); pointer-events:none}
-.yolk-splat > *{position:absolute; left:50%; top:50%; border-radius:50%; transform:translate(-50%,-50%)}
+.yolk-splat{position:absolute; z-index:8; width:240px; height:240px; pointer-events:none}
+.yolk-splat .goo{position:absolute; inset:0; filter:url(#goo2)}
+.yolk-splat .goo > *{position:absolute; left:50%; top:50%; border-radius:50%; transform:translate(-50%,-50%)}
+.yolk-splat .ylabel{position:absolute; left:50%; top:50%; width:80px; height:48px; transform:translate(-50%,-50%); opacity:0; pointer-events:none; overflow:visible}
+.yolk-splat .ylabel text{font:600 10.5px/1 var(--display); letter-spacing:.02em; fill:#FFF1DE}
 .yolk-splat .puddle{width:24px; height:24px; pointer-events:auto; cursor:pointer;
-  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='138 253 470 470'%3E%3Cpath fill='%23FFDEBA' transform='rotate(-90 373 385)' d='M392 485C403 478 409 459 409 434C409 415 406 397 399 376C394 363 392 358 385 352C376 343 367 341 360 347C353 352 353 358 357 373C362 395 364 416 362 446L361 468L363 473C369 486 382 492 392 485ZM363 317C368 313 370 309 370 302C369 288 356 276 348 279C344 280 340 285 339 290C337 296 338 307 341 311C345 319 356 322 363 317Z'/%3E%3C/svg%3E") center/contain no-repeat #EC6E22}   /* flat yolk; highlight is the Voja egg's "i", lying on its side */
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='138 253 470 470'%3E%3Cpath fill='%23FFDEBA' transform='rotate(-90 373 385)' d='M392 485C403 478 409 459 409 434C409 415 406 397 399 376C394 363 392 358 385 352C376 343 367 341 360 347C353 352 353 358 357 373C362 395 364 416 362 446L361 468L363 473C369 486 382 492 392 485ZM363 317C368 313 370 309 370 302C369 288 356 276 348 279C344 280 340 285 339 290C337 296 338 307 341 311C345 319 356 322 363 317Z'/%3E%3C/svg%3E") 9% 46%/34% auto no-repeat #EC6E22}   /* flat yolk; highlight is the Voja egg's "i", lying on its side */
 .yolk-splat i{width:var(--s,12px); height:var(--s,12px); background:#EC6E22; opacity:0}
 
 /* ---------- projects that hatch ---------- */
