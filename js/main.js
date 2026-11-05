@@ -276,7 +276,7 @@ addEventListener("keydown", e => { if (e.key === "Escape") closeProject(); });
 addEventListener("hashchange", route);
 
 /* ---------- egg crack line: thick where it started, tapering to a sharp point at the tip that is moving ---------- */
-const CRACK_LINE = [[0,463],[94,423],[169,475],[244,417],[320,475],[395,423],[470,457]];
+const CRACK_LINE = [[8,459.6],[94,423],[169,475],[244,417],[320,475],[395,423],[446,446.1]];   // starts and ends just inside the egg, so no clipping is needed
 const CRACK_LEN = CRACK_LINE.slice(1).reduce((s, p, i) => s + Math.hypot(p[0] - CRACK_LINE[i][0], p[1] - CRACK_LINE[i][1]), 0);
 function crackAt(s) {                                     // point at distance s along the zigzag
   for (let i = 1; i < CRACK_LINE.length; i++) {
@@ -289,9 +289,9 @@ function crackShape(k, W) {                               // k: how far the crac
   if (k <= 0.001) return "";
   const end = k * CRACK_LEN, taper = Math.min(130, end), N = Math.max(12, Math.round(end / 2.5)), L = [], R = [];
   for (let j = 0; j <= N; j++) {
-    const s = end * j / N, [x, y] = crackAt(s), [x0, y0] = crackAt(Math.max(0, s - 12)), [x1, y1] = crackAt(Math.min(end, s + 12));   // smoothed direction rounds the corners cleanly
+    const s = j === N ? end : end * j / N, [x, y] = crackAt(s), [x0, y0] = crackAt(Math.max(0, s - 12)), [x1, y1] = crackAt(Math.min(CRACK_LEN, s + 12));   // smoothed along the whole zigzag, so the tip never flips as it grows
     const len = Math.hypot(x1 - x0, y1 - y0) || 1, nx = -(y1 - y0) / len, ny = (x1 - x0) / len;
-    const t = Math.min(1, (end - s) / taper), w = W / 2 * Math.sqrt(t) * (1 + 0.12 * Math.sin(s / 17));   // full, then a sharp taper at the tip
+    const t = Math.max(0, Math.min(1, (end - s) / taper)), w = W / 2 * Math.sqrt(t) * (1 + 0.12 * Math.sin(s / 17));   // full, then a sharp taper at the tip
     L.push(`${(x + nx * w).toFixed(1)} ${(y + ny * w).toFixed(1)}`); R.unshift(`${(x - nx * w).toFixed(1)} ${(y - ny * w).toFixed(1)}`);
   }
   return `M${L.join(" L")} L${R.join(" L")}Z`;
