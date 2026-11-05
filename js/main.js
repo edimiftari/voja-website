@@ -443,6 +443,7 @@ function crackShape(k, W) {                               // k: how far the crac
     setTimeout(() => { setCrack(0, true); mark.classList.remove("open"); busy = false; }, 1520);   // halves meet: the egg is whole again, no crack
   });
 
+  let yolkN = 0;
   function dropYolk() {
     const r = egg.getBoundingClientRect();
     const sx = r.left + r.width * 0.5 + scrollX, sy = r.top + r.height * 0.5 + scrollY;
@@ -452,7 +453,9 @@ function crackShape(k, W) {                               // k: how far the crac
     const lx = m + Math.random() * (vw - 2 * m), ly = top0 + Math.random() * Math.max(40, vh - 70 - top0);
     const dx = lx + scrollX - sx, dy = ly + scrollY - sy;
     const el = document.createElement("div"); el.className = "yolk-splat";
-    el.innerHTML = '<div class="puddle"></div>' + "<i></i>".repeat(4);
+    el.innerHTML = '<div class="goo"><div class="puddle" role="button" aria-label="Open a random project"></div>' + "<i></i>".repeat(4) + '</div>' +
+      '<svg class="ylabel" viewBox="0 0 80 48" aria-hidden="true"><path id="yl' + (++yolkN) + '" d="M15 30 Q42 15 72 25" fill="none"/>' +
+      '<text><textPath href="#yl' + yolkN + '" startOffset="50%" text-anchor="middle">surprise me</textPath></text></svg>';
     el.style.left = (sx - 120) + "px"; el.style.top = (sy - 120) + "px";
     document.body.appendChild(el);
     const FALL = Math.round(Math.min(820, 380 + Math.hypot(dx, dy) * 0.55));
@@ -466,10 +469,10 @@ function crackShape(k, W) {                               // k: how far the crac
     const puddle = el.querySelector(".puddle");
     // lands and spreads into a wobbling puddle (seen at a slight angle, so a little wider than tall)
     puddle.animate([{ width: "24px", height: "24px" }, { width: "24px", height: "26px", offset: .5 },
-      { width: "60px", height: "34px", borderRadius: "58% 42% 55% 45% / 46% 56% 44% 54%", offset: .62 },
-      { width: "72px", height: "44px", borderRadius: "44% 56% 47% 53% / 57% 43% 58% 42%", offset: .76 },
-      { width: "64px", height: "39px", borderRadius: "53% 47% 58% 42% / 45% 55% 46% 54%", offset: .88 },
-      { width: "66px", height: "40px", borderRadius: "49% 51% 52% 48% / 52% 48% 51% 49%" }],
+      { width: "72px", height: "41px", borderRadius: "58% 42% 55% 45% / 46% 56% 44% 54%", offset: .62 },
+      { width: "86px", height: "52px", borderRadius: "44% 56% 47% 53% / 57% 43% 58% 42%", offset: .76 },
+      { width: "77px", height: "47px", borderRadius: "53% 47% 58% 42% / 45% 55% 46% 54%", offset: .88 },
+      { width: "80px", height: "48px", borderRadius: "49% 51% 52% 48% / 52% 48% 51% 49%" }],
       { duration: FALL * 2, easing: "ease-out", fill: "forwards" });
     const drops = [[-46, -10, 15], [38, -16, 13], [26, 18, 16], [-34, 16, 12]];
     el.querySelectorAll("i").forEach((d, k) => {
@@ -479,8 +482,11 @@ function crackShape(k, W) {                               // k: how far the crac
         { opacity: 1, transform: `translate(calc(-50% + ${dx * 1.3}px), calc(-50% + ${dy * 1.3}px)) scale(.85)` }],
         { delay: FALL + 10, duration: 380, easing: "cubic-bezier(.2,.7,.35,1)", fill: "forwards" });
     });
+    el.querySelector(".ylabel").animate([{ opacity: 0, transform: "translate(-50%,-50%) scale(.4) rotate(-8deg)" },
+      { opacity: 1, transform: "translate(-50%,-50%) scale(1.12) rotate(2deg)", offset: .6 },
+      { opacity: 1, transform: "translate(-50%,-50%) scale(1) rotate(0)" }],
+      { delay: FALL * 1.7, duration: 420, easing: "cubic-bezier(.3,1.4,.5,1)", fill: "forwards" });
     // tap the puddle: it gets slurped up and you land on a random project
-    puddle.title = "Surprise me";
     puddle.addEventListener("mousedown", e => e.preventDefault());   // no text selection when tapping
     puddle.addEventListener("click", () => {
       if (el.dataset.going) return; el.dataset.going = "1";
@@ -653,7 +659,10 @@ document.getElementById("copy").addEventListener("click", async e => {
           _subject: "New project enquiry: " + d.project + " from " + d.name, _replyto: d.email, _template: "table", _captcha: "false", _honey: "" })
       });
       const j = await r.json().catch(() => ({}));
-      if (!r.ok || String(j.success) === "false") throw new Error(j.message || "failed");
+      if (!r.ok || String(j.success) === "false") {
+        console.warn("[contact] FormSubmit said:", r.status, j.message || j);
+        throw new Error(j.message || "failed");
+      }
       const first = d.name.trim().split(/\s+/)[0];
       f.classList.add("sent");
       f.innerHTML = '<div class="done" tabindex="-1"><h3>Thanks, <em></em>. Message sent.</h3><p>I usually reply within a day or two.</p></div>';
