@@ -7,7 +7,8 @@
    - id           short name with no spaces, used in the link (vojastudio.com/#p-amber-bottle)
                   and as the folder name: projects/<id>/
    - title        project name
-   - category     one of: "3D", "Motion", "Packaging", "Branding", "Architecture"
+   - category     one of: "3D Animation", "3D Modeling", "Motion", "Packaging", "Branding", "Architecture"
+                  (the homepage groups the work by category, in that order)
    - year         e.g. 2026
    - size         width on the homepage grid: "large", "medium" or "small"
    - client, role, tools, description   text shown on the project page
@@ -42,7 +43,7 @@ window.VOJA_PROJECTS = [
   {
     id: "fire-hydrant",
     title: "Fire hydrant",
-    category: "3D",
+    category: "3D Animation",
     year: 2024,
     size: "large",
     client: "Personal project",
@@ -61,57 +62,9 @@ window.VOJA_PROJECTS = [
     placeholder: { scene: "bottle", tone: "azure" }
   },
   {
-    id: "mango-juice",
-    title: "Mango juice carton",
-    category: "3D",
-    year: 2024,
-    size: "small",
-    client: "Client work",
-    role: "Modelling, look dev, lighting, rendering",
-    tools: "Blender",
-    description: "A one-litre juice carton with condensation droplets and a bed of mangoes, built for a packshot. Drag the slider to see the wireframe underneath.",
-    cover: "projects/mango-juice/render.jpg",
-    youtube: "",
-    media: [],
-    compare: { before: "projects/mango-juice/wireframe.jpg", after: "projects/mango-juice/render.jpg", labels: ["Wireframe", "Render"] },
-    placeholder: { scene: "bottle", tone: "azure" }
-  },
-  {
-    id: "tallow-cream",
-    title: "Whipped tallow cream jar",
-    category: "3D",
-    year: 2024,
-    size: "medium",
-    client: "Client work",
-    role: "Modelling, look dev, lighting, rendering",
-    tools: "Blender",
-    description: "An amber glass jar with a piped swirl of whipped cream, modelled and lit for e-commerce. Drag the slider to see the wireframe underneath.",
-    cover: "projects/tallow-cream/render.jpg",
-    youtube: "",
-    media: [],
-    compare: { before: "projects/tallow-cream/wireframe.jpg", after: "projects/tallow-cream/render.jpg", labels: ["Wireframe", "Render"] },
-    placeholder: { scene: "bottle", tone: "azure" }
-  },
-  {
-    id: "lavender-balm",
-    title: "Lavender balm tin",
-    category: "3D",
-    year: 2024,
-    size: "medium",
-    client: "Client work",
-    role: "Modelling, look dev, lighting, rendering",
-    tools: "Blender",
-    description: "A screw-top aluminium tin and its label, rendered as a soft studio packshot. Drag the slider to see the wireframe underneath.",
-    cover: "projects/lavender-balm/render.jpg",
-    youtube: "",
-    media: [],
-    compare: { before: "projects/lavender-balm/wireframe.jpg", after: "projects/lavender-balm/render.jpg", labels: ["Wireframe", "Render"] },
-    placeholder: { scene: "bottle", tone: "azure" }
-  },
-  {
     id: "zeno-pouches",
     title: "ZENO pouch tin",
-    category: "3D",
+    category: "3D Modeling",
     year: 2024,
     size: "large",
     client: "Client work",
@@ -128,9 +81,57 @@ window.VOJA_PROJECTS = [
     placeholder: { scene: "bottle", tone: "azure" }
   },
   {
+    id: "mango-juice",
+    title: "Mango juice carton",
+    category: "3D Modeling",
+    year: 2024,
+    size: "small",
+    client: "Client work",
+    role: "Modelling, look dev, lighting, rendering",
+    tools: "Blender",
+    description: "A one-litre juice carton with condensation droplets and a bed of mangoes, built for a packshot. Drag the slider to see the wireframe underneath.",
+    cover: "projects/mango-juice/render.jpg",
+    youtube: "",
+    media: [],
+    compare: { before: "projects/mango-juice/wireframe.jpg", after: "projects/mango-juice/render.jpg", labels: ["Wireframe", "Render"] },
+    placeholder: { scene: "bottle", tone: "azure" }
+  },
+  {
+    id: "tallow-cream",
+    title: "Whipped tallow cream jar",
+    category: "3D Modeling",
+    year: 2024,
+    size: "medium",
+    client: "Client work",
+    role: "Modelling, look dev, lighting, rendering",
+    tools: "Blender",
+    description: "An amber glass jar with a piped swirl of whipped cream, modelled and lit for e-commerce. Drag the slider to see the wireframe underneath.",
+    cover: "projects/tallow-cream/render.jpg",
+    youtube: "",
+    media: [],
+    compare: { before: "projects/tallow-cream/wireframe.jpg", after: "projects/tallow-cream/render.jpg", labels: ["Wireframe", "Render"] },
+    placeholder: { scene: "bottle", tone: "azure" }
+  },
+  {
+    id: "lavender-balm",
+    title: "Lavender balm tin",
+    category: "3D Modeling",
+    year: 2024,
+    size: "medium",
+    client: "Client work",
+    role: "Modelling, look dev, lighting, rendering",
+    tools: "Blender",
+    description: "A screw-top aluminium tin and its label, rendered as a soft studio packshot. Drag the slider to see the wireframe underneath.",
+    cover: "projects/lavender-balm/render.jpg",
+    youtube: "",
+    media: [],
+    compare: { before: "projects/lavender-balm/wireframe.jpg", after: "projects/lavender-balm/render.jpg", labels: ["Wireframe", "Render"] },
+    placeholder: { scene: "bottle", tone: "azure" }
+  },
+  {
     id: "lavender-jar",
     title: "Lavender cream jar",
-    category: "3D",
+    category: "3D Modeling",
     year: 2024,
     size: "small",
     client: "Client work",
@@ -146,7 +147,7 @@ window.VOJA_PROJECTS = [
   {
     id: "waste-bin",
     title: "Steel waste bin",
-    category: "3D",
+    category: "3D Modeling",
     year: 2024,
     size: "small",
     client: "Client work",
@@ -253,7 +254,7 @@ window.VOJA_PROJECTS = [
   {
     id: "stair",
     title: "Stair study",
-    category: "3D",
+    category: "3D Modeling",
     year: 2025,
     size: "small",
     client: "Self-initiated",
