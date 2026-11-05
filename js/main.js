@@ -3,7 +3,7 @@
 "use strict";
 
 const PROJECTS = window.VOJA_PROJECTS || [];
-const CAT_ORDER = ["3D", "Motion", "Packaging", "Branding", "Architecture"];
+const CAT_ORDER = ["3D Animation", "3D Modeling", "Motion", "Packaging", "Branding", "Architecture"];
 const SIZE = { large: "w8", medium: "w6", small: "w4" };
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const isVideo = src => /\.(mp4|webm|mov)(\?|$)/i.test(src);
@@ -154,11 +154,28 @@ function syncCompare(el) {
 
 /* ---------- build grid ---------- */
 const grid = document.getElementById("grid"), filters = document.getElementById("filters");
-grid.innerHTML = PROJECTS.map((p, i) => `
-  <a class="card ${SIZE[p.size] || "w4"}${isHatch(p) ? " hatch" : ""}" href="#p-${esc(p.id)}" data-cat="${esc(p.category)}">
+// grouped by category (CAT_ORDER, then any others), each group laid out so its rows fill the 12 columns
+const GROUPS = [...CAT_ORDER, ...[...new Set(PROJECTS.map(p => p.category))].filter(c => !CAT_ORDER.includes(c))]
+  .map(c => [c, PROJECTS.map((p, i) => [p, i]).filter(([p]) => p.category === c)]).filter(([, l]) => l.length);
+function rowWidths(n) {                                    // e.g. 5 -> [8,4, 4,4,4]; 1 -> [8]
+  if (n === 1) return [8];
+  const out = [], twos = [[8, 4], [4, 8], [6, 6]]; let rem = n, k = 0, t = 0;
+  while (rem > 0) {
+    const take = rem === 2 || rem === 3 ? rem : rem === 4 ? 2 : (k++ % 2 ? 3 : 2);
+    out.push(...(take === 3 ? [4, 4, 4] : twos[t++ % 3])); rem -= take;
+  }
+  return out;
+}
+const card = (p, i, w) => `
+  <a class="card w${w}${isHatch(p) ? " hatch" : ""}" href="#p-${esc(p.id)}" data-cat="${esc(p.category)}">
     <div class="plate">${cardMedia(p, i)}${ytList(p).length || (p.media || []).some(m => ytId(typeof m === "string" ? m : m.src)) ? `<span class="play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></span>` : ""}<span class="view">View project</span></div>
     <div class="cap"><h3>${esc(p.title)}</h3><span class="label">${esc(p.category)}${p.year ? " · " + esc(p.year) : ""}</span></div>
-  </a>`).join("");
+  </a>`;
+grid.innerHTML = GROUPS.map(([c, list]) => {
+  const ws = rowWidths(list.length);
+  return `<div class="cat-head" data-cat="${esc(c)}"><h3>${esc(c)}</h3><span class="label">${list.length} ${list.length === 1 ? "project" : "projects"}</span></div>` +
+    list.map(([p, i], k) => card(p, i, ws[k])).join("");
+}).join("");
 
 const cats = ["All", ...CAT_ORDER.filter(c => PROJECTS.some(p => p.category === c)),
               ...[...new Set(PROJECTS.map(p => p.category))].filter(c => !CAT_ORDER.includes(c))];
@@ -168,6 +185,7 @@ filters.addEventListener("click", e => {
   filters.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
   const c = b.dataset.c;
   grid.querySelectorAll(".card").forEach(el => { el.hidden = !(c === "All" || el.dataset.cat === c); });
+  grid.querySelectorAll(".cat-head").forEach(el => { el.hidden = c !== "All"; });
   grid.classList.toggle("filtered", c !== "All");
   paintAll();
 });
