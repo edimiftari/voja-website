@@ -94,10 +94,10 @@ window.VOJA_PROJECTS = [
     tools: "Blender",
     description: "A one-litre juice carton with condensation droplets and a bed of mangoes, built for a packshot. Drag the slider to see the wireframe underneath.",
     ratio: 0.8,                  // cover shape (width / height); portrait and square covers keep their shape
-    cover: "projects/mango-juice/render.jpg",
+    cover: "projects/mango-juice/render.jpg?v=2",
     youtube: "",
     media: [],
-    compare: { before: "projects/mango-juice/wireframe.jpg", after: "projects/mango-juice/render.jpg", labels: ["Wireframe", "Render"] },
+    compare: { before: "projects/mango-juice/wireframe.jpg", after: "projects/mango-juice/render.jpg?v=2", labels: ["Wireframe", "Render"] },
     placeholder: { scene: "bottle", tone: "azure" }
   },
   {
