@@ -275,16 +275,39 @@ document.getElementById("close").onclick = () => closeProject();
 addEventListener("keydown", e => { if (e.key === "Escape") closeProject(); });
 addEventListener("hashchange", route);
 
+/* ---------- egg crack line: thick where it started, tapering to a sharp point at the tip that is moving ---------- */
+const CRACK_LINE = [[0,463],[94,423],[169,475],[244,417],[320,475],[395,423],[470,457]];
+const CRACK_LEN = CRACK_LINE.slice(1).reduce((s, p, i) => s + Math.hypot(p[0] - CRACK_LINE[i][0], p[1] - CRACK_LINE[i][1]), 0);
+function crackAt(s) {                                     // point at distance s along the zigzag
+  for (let i = 1; i < CRACK_LINE.length; i++) {
+    const a = CRACK_LINE[i - 1], b = CRACK_LINE[i], d = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (s <= d || i === CRACK_LINE.length - 1) { const u = Math.min(1, s / d); return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u]; }
+    s -= d;
+  }
+}
+function crackShape(k, W) {                               // k: how far the crack has run (0-1), W: full thickness
+  if (k <= 0.001) return "";
+  const end = k * CRACK_LEN, taper = Math.min(130, end), N = Math.max(12, Math.round(end / 2.5)), L = [], R = [];
+  for (let j = 0; j <= N; j++) {
+    const s = end * j / N, [x, y] = crackAt(s), [x0, y0] = crackAt(Math.max(0, s - 12)), [x1, y1] = crackAt(Math.min(end, s + 12));   // smoothed direction rounds the corners cleanly
+    const len = Math.hypot(x1 - x0, y1 - y0) || 1, nx = -(y1 - y0) / len, ny = (x1 - x0) / len;
+    const t = Math.min(1, (end - s) / taper), w = W / 2 * Math.sqrt(t) * (1 + 0.12 * Math.sin(s / 17));   // full, then a sharp taper at the tip
+    L.push(`${(x + nx * w).toFixed(1)} ${(y + ny * w).toFixed(1)}`); R.unshift(`${(x - nx * w).toFixed(1)} ${(y - ny * w).toFixed(1)}`);
+  }
+  return `M${L.join(" L")} L${R.join(" L")}Z`;
+}
+
 /* ---------- pull-to-refresh egg (touch screens) ---------- */
 (function () {
   const ptr = document.getElementById("ptr");
   if (!ptr || !("ontouchstart" in window)) return;
   const READY = 90, MAX = 130; // pixels of pull needed to crack, and the most it travels
+  const ptrLine = ptr.querySelector(".crack-line");
   let startY = null, pull = 0;
   const show = p => {
     const k = Math.min(p / READY, 1);
     ptr.style.transform = `translate(-50%, ${-64 + p}px) rotate(${-10 * k}deg)`;
-    ptr.style.setProperty("--crack-off", String(1 - k));
+    ptrLine.setAttribute("d", crackShape(k, 18));
     ptr.classList.toggle("ready", p >= READY);
   };
   addEventListener("touchstart", e => {
@@ -388,7 +411,20 @@ addEventListener("hashchange", route);
   const tap = mark.querySelector(".tap"), top = mark.querySelector(".h-top"), egg = mark.querySelector(".egg");
   const TAPS = 5;
   let taps = 0, resetT = 0, busy = false;
-  const setCrack = n => mark.style.setProperty("--crack-off", String(n ? 1 - 0.2 * n : 1));
+  // the crack runs a bit further with each tap: animate its length, redrawing the tapered shape every frame
+  const line = mark.querySelector(".h-crack .crack-line");
+  let crackK = 0, crackRaf = 0;
+  const setCrack = (n, instant) => {
+    const from = crackK, to = n ? 0.2 * n : 0, t0 = performance.now(), dur = to > from ? 260 : 180;
+    cancelAnimationFrame(crackRaf);
+    if (instant) { crackK = to; line.setAttribute("d", crackShape(to, 15)); return; }
+    const step = now => {
+      const u = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - u, 3);
+      crackK = from + (to - from) * e; line.setAttribute("d", crackShape(crackK, 15));
+      if (u < 1) crackRaf = requestAnimationFrame(step);
+    };
+    crackRaf = requestAnimationFrame(step);
+  };
   // quick repeated taps would otherwise start a text selection (blue highlight) around the egg
   mark.addEventListener("mousedown", e => { if (e.detail > 1) e.preventDefault(); });
   mark.addEventListener("click", () => {
@@ -404,7 +440,7 @@ addEventListener("hashchange", route);
       { transform: "translate(-6%,-34%) rotate(-24deg)", offset: .75 }, { transform: "none" }],
       { duration: 1500, easing: "cubic-bezier(.3,.7,.3,1)" });
     dropYolk();
-    setTimeout(() => { mark.classList.remove("open"); setCrack(0); busy = false; }, 1520);
+    setTimeout(() => { setCrack(0, true); mark.classList.remove("open"); busy = false; }, 1520);   // halves meet: the egg is whole again, no crack
   });
 
   function dropYolk() {
