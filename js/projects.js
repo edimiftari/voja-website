@@ -30,6 +30,7 @@
    - compare      optional before / after slider at the top of the project page:
                     compare: { before: "projects/pavilion/clay.jpg", after: "projects/pavilion/final.jpg", labels: ["Clay", "Final"] }
                   (labels are optional; "demo" shows a placeholder version)
+                  Several sliders on one page? Use a list: compare: [ {...}, {...} ]
                   With two videos (wireframe as "before", render as "after") both play together, frame-locked;
                   only the render plays sound, via the speaker button in the corner. Same length, fps and size.
    - placeholder  the drawn stand-in shown until you add a cover (you can ignore it)
@@ -57,6 +58,105 @@ window.VOJA_PROJECTS = [
       after: "projects/fire-hydrant/render.mp4",       // the only sound
       labels: ["Wireframe", "Render"]
     },
+    placeholder: { scene: "bottle", tone: "azure" }
+  },
+  {
+    id: "mango-juice",
+    title: "Mango juice carton",
+    category: "3D",
+    year: 2024,
+    size: "small",
+    client: "Client work",
+    role: "Modelling, look dev, lighting, rendering",
+    tools: "Blender",
+    description: "A one-litre juice carton with condensation droplets and a bed of mangoes, built for a packshot. Drag the slider to see the wireframe underneath.",
+    cover: "projects/mango-juice/render.jpg",
+    youtube: "",
+    media: [],
+    compare: { before: "projects/mango-juice/wireframe.jpg", after: "projects/mango-juice/render.jpg", labels: ["Wireframe", "Render"] },
+    placeholder: { scene: "bottle", tone: "azure" }
+  },
+  {
+    id: "tallow-cream",
+    title: "Whipped tallow cream jar",
+    category: "3D",
+    year: 2024,
+    size: "medium",
+    client: "Client work",
+    role: "Modelling, look dev, lighting, rendering",
+    tools: "Blender",
+    description: "An amber glass jar with a piped swirl of whipped cream, modelled and lit for e-commerce. Drag the slider to see the wireframe underneath.",
+    cover: "projects/tallow-cream/render.jpg",
+    youtube: "",
+    media: [],
+    compare: { before: "projects/tallow-cream/wireframe.jpg", after: "projects/tallow-cream/render.jpg", labels: ["Wireframe", "Render"] },
+    placeholder: { scene: "bottle", tone: "azure" }
+  },
+  {
+    id: "lavender-balm",
+    title: "Lavender balm tin",
+    category: "3D",
+    year: 2024,
+    size: "medium",
+    client: "Client work",
+    role: "Modelling, look dev, lighting, rendering",
+    tools: "Blender",
+    description: "A screw-top aluminium tin and its label, rendered as a soft studio packshot. Drag the slider to see the wireframe underneath.",
+    cover: "projects/lavender-balm/render.jpg",
+    youtube: "",
+    media: [],
+    compare: { before: "projects/lavender-balm/wireframe.jpg", after: "projects/lavender-balm/render.jpg", labels: ["Wireframe", "Render"] },
+    placeholder: { scene: "bottle", tone: "azure" }
+  },
+  {
+    id: "zeno-pouches",
+    title: "ZENO pouch tin",
+    category: "3D",
+    year: 2024,
+    size: "large",
+    client: "Client work",
+    role: "Modelling, look dev, lighting, rendering",
+    tools: "Blender",
+    description: "Product visualisation of a nicotine pouch tin, modelled down to the lid clip and the soft pouches inside. Drag the sliders to see the wireframe under each render.",
+    cover: "projects/zeno-pouches/render.jpg",
+    youtube: "",
+    media: [],
+    compare: [
+      { before: "projects/zeno-pouches/wireframe.jpg", after: "projects/zeno-pouches/render.jpg", labels: ["Wireframe", "Render"] },
+      { before: "projects/zeno-pouches/wireframe-top.jpg", after: "projects/zeno-pouches/render-top.jpg", labels: ["Wireframe", "Render"] }
+    ],
+    placeholder: { scene: "bottle", tone: "azure" }
+  },
+  {
+    id: "lavender-jar",
+    title: "Lavender cream jar",
+    category: "3D",
+    year: 2024,
+    size: "small",
+    client: "Client work",
+    role: "Modelling, look dev, lighting, rendering",
+    tools: "Blender",
+    description: "A green glass jar with a whipped lavender cream and a ribbed metal lid. Drag the slider to see the wireframe underneath.",
+    cover: "projects/lavender-jar/render.jpg",
+    youtube: "",
+    media: [],
+    compare: { before: "projects/lavender-jar/wireframe.jpg", after: "projects/lavender-jar/render.jpg", labels: ["Wireframe", "Render"] },
+    placeholder: { scene: "bottle", tone: "azure" }
+  },
+  {
+    id: "waste-bin",
+    title: "Steel waste bin",
+    category: "3D",
+    year: 2024,
+    size: "small",
+    client: "Client work",
+    role: "Modelling, look dev, lighting, rendering",
+    tools: "Blender",
+    description: "A brushed steel waste bin placed in an interior scene, showing how the product sits in a real space. Drag the slider to see the wireframe underneath.",
+    cover: "projects/waste-bin/render.jpg",
+    youtube: "",
+    media: [],
+    compare: { before: "projects/waste-bin/wireframe.jpg", after: "projects/waste-bin/render.jpg", labels: ["Wireframe", "Render"] },
     placeholder: { scene: "bottle", tone: "azure" }
   },
   {
