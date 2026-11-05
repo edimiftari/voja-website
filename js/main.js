@@ -627,6 +627,40 @@ document.getElementById("copy").addEventListener("click", async e => {
   setTimeout(() => b.textContent = "Copy email", 2200);
 });
 
+/* ---------- contact form (FormSubmit, sends to studiovoja@gmail.com) ---------- */
+(() => {
+  const f = document.getElementById("cform"); if (!f) return;
+  const st = document.getElementById("fstatus"), btn = f.querySelector("button[type=submit]");
+  const say = (t, err) => { st.textContent = t; st.classList.toggle("err", !!err); };
+  f.addEventListener("input", e => e.target.classList.remove("bad"));
+  f.addEventListener("submit", async e => {
+    e.preventDefault();
+    if (f._honey.value) return;
+    const bad = [...f.querySelectorAll("[required]")].filter(el => !el.checkValidity());
+    bad.forEach(el => el.classList.add("bad"));
+    if (bad.length) { say(bad[0].name === "email" ? "Please check the email address." : "Please fill in the highlighted fields.", true); bad[0].focus(); return; }
+    const d = Object.fromEntries(new FormData(f));
+    btn.disabled = true; btn.textContent = "Sending…"; say("");
+    try {
+      const r = await fetch("https://formsubmit.co/ajax/studiovoja@gmail.com", {
+        method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ name: d.name, email: d.email, project: d.project, message: d.message,
+          _subject: "New project enquiry: " + d.project + " from " + d.name, _replyto: d.email, _template: "table", _captcha: "false", _honey: "" })
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || String(j.success) === "false") throw new Error(j.message || "failed");
+      const first = d.name.trim().split(/\s+/)[0];
+      f.classList.add("sent");
+      f.innerHTML = '<div class="done" tabindex="-1"><h3>Thanks, <em></em>. Message sent.</h3><p>I usually reply within a day or two.</p></div>';
+      f.querySelector("em").textContent = first;
+      f.querySelector(".done").focus();
+    } catch {
+      btn.disabled = false; btn.textContent = "Send message";
+      say("Couldn't send right now. Please email studiovoja@gmail.com directly.", true);
+    }
+  });
+})();
+
 /* ---------- intro: remove the cracked egg once it has faded ---------- */
 const intro = document.getElementById("intro");
 if (intro) {
