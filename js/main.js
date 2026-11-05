@@ -201,7 +201,15 @@ function openProject(id) {
     r.addEventListener("input", () => el.style.setProperty("--pos", r.value + "%"));
     syncCompare(el);
   });
-  document.getElementById("p-next").onclick = () => { location.hash = "p-" + PROJECTS[(i + 1) % PROJECTS.length].id; };
+  // more projects: previous / next in the same category, plus a jump to each other category
+  const same = PROJECTS.filter(q => q.category === p.category), k = same.indexOf(p);
+  const step = (q, dir) => `<a class="p-step ${dir}" href="#p-${esc(q.id)}"><span class="label">${dir === "prev" ? "← Previous" : "Next"} in ${esc(p.category)}${dir === "next" ? " →" : ""}</span><b>${esc(q.title)}</b></a>`;
+  const steps = same.length < 2 ? "" : same.length === 2 ? step(same[(k + 1) % 2], "next")
+    : step(same[(k - 1 + same.length) % same.length], "prev") + step(same[(k + 1) % same.length], "next");
+  const cats = CAT_ORDER.filter(c => c !== p.category && PROJECTS.some(q => q.category === c));
+  document.getElementById("p-nav").innerHTML = (steps ? `<div class="p-steps${same.length === 2 ? " one" : ""}">${steps}</div>` : "") +
+    (cats.length ? `<div class="p-cats"><span class="label">Other categories</span><div>${cats.map(c =>
+      `<a class="btn ghost" href="#p-${esc(PROJECTS.find(q => q.category === c).id)}">${esc(c)} →</a>`).join("")}</div></div>` : "");
   document.title = `${p.title} · Voja Studio`;
   const fresh = ov.hidden;
   if (fresh) lastScroll = scrollY;
