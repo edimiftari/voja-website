@@ -88,15 +88,68 @@ function cardMedia(p, i) {
   return `<div class="hatch-in">${inside}</div><div class="shell s-top">${coverTag(p, i)}${rim}</div><div class="shell s-bot">${coverTag(p, i)}${rim}</div>`;
 }
 
-/* ---------- before / after slider (project pages) ---------- */
+/* ---------- before / after slider (project pages) ----------
+   Images, or two videos. With videos (wireframe "before" + render "after") both loop together, kept on the same frame
+   (syncCompare); the render is the master and the only sound source, toggled by the speaker button. */
+const SPEAKER_OFF = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 9.5l5 5m0-5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+const SPEAKER_ON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
 function compareTag(p) {
   const c = p.compare, demo = c === "demo";
   const [lb, la] = (c && c.labels) || ["Clay", "Final"];
-  const before = demo ? `<canvas data-v="0" class="clay"></canvas>` : mediaTag(c.before, `${p.title}, ${lb}`);
-  const after = demo ? `<canvas data-v="0"></canvas>` : mediaTag(c.after, `${p.title}, ${la}`);
-  return `<div class="g compare" style="--pos:50%"><div class="cmp-before">${before}</div><div class="cmp-after">${after}</div>` +
+  const vids = !demo && isVideo(c.before) && isVideo(c.after);
+  const poster = src => src.replace(/\.(mp4|webm|mov)$/i, "-poster.jpg");
+  const vid = (src, cls) => `<video class="${cls}" src="${esc(src)}" poster="${esc(poster(src))}" muted${cls === "cmp-master" ? " autoplay" : ""} loop playsinline preload="auto"></video>`;
+  const before = demo ? `<canvas data-v="0" class="clay"></canvas>` : vids ? vid(c.before, "cmp-follow") : mediaTag(c.before, `${p.title}, ${lb}`);
+  const after = demo ? `<canvas data-v="0"></canvas>` : vids ? vid(c.after, "cmp-master") : mediaTag(c.after, `${p.title}, ${la}`);
+  return `<div class="g compare${vids ? " videos" : ""}" style="--pos:50%"><div class="cmp-before">${before}</div><div class="cmp-after">${after}</div>` +
     `<span class="cmp-label l">${esc(lb)}</span><span class="cmp-label r">${esc(la)}</span><span class="cmp-handle" aria-hidden="true"></span>` +
-    `<input class="cmp-range" type="range" min="0" max="100" value="50" aria-label="Drag to compare ${esc(lb)} and ${esc(la)}"></div>`;
+    `<input class="cmp-range" type="range" min="0" max="100" value="50" aria-label="Drag to compare ${esc(lb)} and ${esc(la)}">` +
+    (vids ? `<button class="cmp-sound" type="button" aria-pressed="false" aria-label="Play with sound">${SPEAKER_OFF}</button>` : "") + `</div>`;
+}
+function syncCompare(el) {
+  const m = el.querySelector(".cmp-master"), f = el.querySelector(".cmp-follow"), btn = el.querySelector(".cmp-sound");
+  if (!m || !f) return;
+  f.muted = true;                                         // the wireframe never makes a sound
+  let hold = false;                                       // render paused only while the wireframe catches up on loading
+  let blocked = false;                                    // set if the browser refuses autoplay (e.g. battery saver)
+  const ready = v => v.readyState >= 3;
+  // the clips are short loops: let both load completely before the first play so they run smoothly (max 6 s wait)
+  const loaded = v => v.readyState === 4 || (v.buffered.length > 0 && v.duration > 0 && v.buffered.end(v.buffered.length - 1) >= v.duration - 0.1);
+  const t0 = performance.now();
+  m.removeAttribute("autoplay"); m.pause();
+  const tick = () => {
+    if (!el.isConnected) return;
+    if (!el.closest("[hidden]")) {
+      if (hold && ready(f)) { hold = false; m.play().catch(() => {}); }
+      if (!m.paused) {
+        if (!ready(f)) { hold = true; m.pause(); f.pause(); }                       // wireframe still loading: wait for it
+        else if (!ready(m)) { if (!f.paused) f.pause(); }                         // render loading: wireframe waits
+        else {
+          const d = m.duration || 0;
+          let diff = m.currentTime - f.currentTime;        // how far the wireframe is behind the render
+          if (d) { if (diff > d / 2) diff -= d; else if (diff < -d / 2) diff += d; }   // across the loop seam
+          if (Math.abs(diff) > 0.2) { f.currentTime = m.currentTime; f.playbackRate = 1; }   // jump if well off
+          else f.playbackRate = Math.max(0.9, Math.min(1.1, 1 + diff * 3));                   // otherwise ease in
+          if (f.paused) f.play().catch(() => {});
+        }
+      } else if (!hold && !blocked && ready(m) && ready(f) && (loaded(m) && loaded(f) || performance.now() - t0 > 6000)) {
+        m.play().catch(() => { blocked = true; });          // both loaded: start (if the browser refuses, wait for a tap)
+      } else {
+        if (!hold && !f.paused) f.pause();
+        if (f.paused && ready(f) && !f.seeking && Math.abs(m.currentTime - f.currentTime) > 0.03) f.currentTime = m.currentTime;  // paused: show the same frame
+      }
+    }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+  btn.addEventListener("click", () => {
+    const on = m.muted;                                   // turning sound on
+    m.muted = !on;
+    if (on) { m.currentTime = 0; f.currentTime = 0; hold = false; blocked = false; m.play().catch(() => {}); }   // hear it from the start
+    btn.setAttribute("aria-pressed", String(on));
+    btn.setAttribute("aria-label", on ? "Mute" : "Play with sound");
+    btn.innerHTML = on ? SPEAKER_ON : SPEAKER_OFF;
+  });
 }
 
 /* ---------- build grid ---------- */
@@ -139,13 +192,14 @@ function openProject(id) {
   ytList(p).forEach(id => { html += ytEmbed(id, p.title); });
   const media = (p.media || []).map(m => typeof m === "string" ? { src: m } : m);
   html += media.map(m => ytId(m.src) ? ytEmbed(ytId(m.src), p.title, m.wide === false ? " half" : "") : `<figure class="g real${m.wide ? "" : " half"}">${mediaTag(m.src, p.title, { controls: isVideo(m.src) && m.controls })}${m.caption ? `<figcaption class="label">${esc(m.caption)}</figcaption>` : ""}</figure>`).join("");
-  const placeholder = !html;
+  const placeholder = !html && !p.compare;
   if (placeholder) html = `<div class="g"><canvas></canvas></div><div class="g half"><canvas></canvas></div><div class="g half"><canvas></canvas></div>`;
   if (p.compare) html = compareTag(p) + html;
   gal.innerHTML = html;
   gal.querySelectorAll(".compare").forEach(el => {
     const r = el.querySelector(".cmp-range");
     r.addEventListener("input", () => el.style.setProperty("--pos", r.value + "%"));
+    syncCompare(el);
   });
   document.getElementById("p-next").onclick = () => { location.hash = "p-" + PROJECTS[(i + 1) % PROJECTS.length].id; };
   document.title = `${p.title} · Voja Studio`;

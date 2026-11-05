@@ -30,6 +30,8 @@
    - compare      optional before / after slider at the top of the project page:
                     compare: { before: "projects/pavilion/clay.jpg", after: "projects/pavilion/final.jpg", labels: ["Clay", "Final"] }
                   (labels are optional; "demo" shows a placeholder version)
+                  With two videos (wireframe as "before", render as "after") both play together, frame-locked;
+                  only the render plays sound, via the speaker button in the corner. Same length, fps and size.
    - placeholder  the drawn stand-in shown until you add a cover (you can ignore it)
 
    The order of the list is the order on the site.
@@ -37,19 +39,24 @@
 
 window.VOJA_PROJECTS = [
   {
-    id: "amber-bottle",
-    title: "Amber fragrance bottle",
+    id: "fire-hydrant",
+    title: "Fire hydrant",
     category: "3D",
-    year: 2026,
+    year: 2024,
     size: "large",
-    client: "Placeholder client",
-    role: "Modelling, lighting, render",
-    tools: "Blender, Cycles",
-    description: "Product renders for a small-batch fragrance. Glass, liquid and a single hard key light.",
-    cover: "",
+    client: "Personal project",
+    role: "Modelling, look dev, animation",
+    tools: "Blender, EEVEE, After Effects",
+    description: "A street fire hydrant modelled and animated in Blender, rendered in EEVEE. Drag the slider to see the wireframe underneath the final render.",
+    cover: "projects/fire-hydrant/cover.jpg",
+    loop: "projects/fire-hydrant/render.mp4",
     youtube: "",
     media: [],
-    compare: "demo",
+    compare: {
+      before: "projects/fire-hydrant/wireframe.mp4",   // always muted
+      after: "projects/fire-hydrant/render.mp4",       // the only sound
+      labels: ["Wireframe", "Render"]
+    },
     placeholder: { scene: "bottle", tone: "azure" }
   },
   {
