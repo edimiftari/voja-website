@@ -285,10 +285,9 @@ header.top .menu-btn{color:#EBEBDF}
   transform:translate(-50%,-50%); filter:url(#goo)}
 #intro .splash > *{position:absolute; left:50%; top:50%; border-radius:50%}
 /* top-down: the yolk pops toward you, drops away (shrinks) onto the page, then spreads into a wobbling puddle.
-   Size is animated (not scaled) so the small glossy highlight stays small and the puddle looks flat and wet. */
+   Size is animated (not scaled) so the small highlight dot stays small. Flat colours only, no shading. */
 #intro .yolk{width:42px; height:42px; opacity:0; transform:translate(-50%,-50%);
-  background:radial-gradient(circle at 36% 32%, rgba(255,222,186,.9) 0 3px, rgba(255,222,186,0) 9px),
-             radial-gradient(circle at 50% 50%, #EC6E22 62%, #D2521A 100%);
+  background:radial-gradient(circle at 36% 32%, #FFDEBA 0 4px, #0000 4.5px) #EC6E22;   /* flat yolk with a solid highlight dot */
   animation:yolkFall .7s linear .3s forwards}
 @keyframes yolkFall{
   0%{opacity:0; width:18px; height:18px; animation-timing-function:ease-out}
@@ -325,8 +324,8 @@ html, body{overscroll-behavior-y:none}
 #ptr .ptr-top, #ptr .ptr-bot{visibility:hidden}
 #ptr .ptr-top{clip-path:polygon(0 0,100% 0,100% 53%,84% 47%,68% 56%,52% 46%,36% 56%,20% 47%,0 54%)}
 #ptr .ptr-bot{clip-path:polygon(0 54%,20% 47%,36% 56%,52% 46%,68% 56%,84% 47%,100% 53%,100% 100%,0 100%)}
-#ptr .ptr-crack polyline{fill:none; stroke:#323232; stroke-width:16; stroke-linejoin:round; stroke-linecap:round;
-  stroke-dasharray:1 1; stroke-dashoffset:var(--crack-off,1)}
+/* crack: a filled shape drawn by JS (crackShape) - full width at the start, tapering to a point at the growing tip */
+#ptr .ptr-crack .crack-line{fill:#323232}
 #ptr.ready .ptr-egg{animation:ptrShake .18s linear infinite}
 @keyframes ptrShake{0%,100%{transform:rotate(0)}25%{transform:rotate(-4deg)}75%{transform:rotate(4deg)}}
 #ptr.cracked .ptr-egg{animation:none}
@@ -352,16 +351,14 @@ html, body{overscroll-behavior-y:none}
 .hero .mark .h-top, .hero .mark .h-bot{visibility:hidden}
 .hero .mark .h-top{clip-path:polygon(0 0,100% 0,100% 53%,84% 47%,68% 56%,52% 46%,36% 56%,20% 47%,0 54%); transform-origin:12% 52%}
 .hero .mark .h-bot{clip-path:polygon(0 54%,20% 47%,36% 56%,52% 46%,68% 56%,84% 47%,100% 53%,100% 100%,0 100%)}
-.hero .mark .h-crack polyline{fill:none; stroke:#323232; stroke-width:12; stroke-linejoin:round; stroke-linecap:round;
-  stroke-dasharray:1 1; stroke-dashoffset:var(--crack-off,1); transition:stroke-dashoffset .25s ease-out}
+.hero .mark .h-crack .crack-line{fill:#323232}
 .hero .mark.open .egg, .hero .mark.open .h-crack{visibility:hidden}
 .hero .mark.open .h-top, .hero .mark.open .h-bot{visibility:visible}
 .hero .mark.open .wob{animation-play-state:paused}
 .yolk-splat{position:absolute; z-index:8; width:240px; height:240px; filter:url(#goo2); pointer-events:none}
 .yolk-splat > *{position:absolute; left:50%; top:50%; border-radius:50%; transform:translate(-50%,-50%)}
 .yolk-splat .puddle{width:24px; height:24px; pointer-events:auto; cursor:pointer;
-  background:radial-gradient(circle at 36% 32%, rgba(255,222,186,.9) 0 3px, rgba(255,222,186,0) 8px),
-             radial-gradient(circle at 50% 50%, #EC6E22 62%, #D2521A 100%)}
+  background:radial-gradient(circle at 36% 32%, #FFDEBA 0 4px, #0000 4.5px) #EC6E22}   /* flat yolk with a solid highlight dot */
 .yolk-splat i{width:var(--s,12px); height:var(--s,12px); background:#EC6E22; opacity:0}
 
 /* ---------- projects that hatch ---------- */
