@@ -401,7 +401,7 @@ addEventListener("hashchange", route);
 
 /* ---------- phone menu ---------- */
 const hdr = document.querySelector("header.top"), mb = document.getElementById("menu-btn");
-function setMenu(open) { hdr.classList.toggle("open", open); mb.setAttribute("aria-expanded", open); document.getElementById("menu-txt").textContent = open ? "Close" : "Menu"; }
+function setMenu(open) { hdr.classList.toggle("open", open); mb.setAttribute("aria-expanded", open); mb.setAttribute("aria-label", open ? "Close menu" : "Open menu"); }
 mb.addEventListener("click", () => setMenu(!hdr.classList.contains("open")));
 document.getElementById("main-nav").addEventListener("click", e => { if (e.target.closest("a")) setMenu(false); });
 addEventListener("keydown", e => { if (e.key === "Escape") setMenu(false); });
