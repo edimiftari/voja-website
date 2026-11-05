@@ -177,6 +177,39 @@ grid.innerHTML = GROUPS.map(([c, list]) => {
     list.map(([p, i], k) => card(p, i, ws[k])).join("");
 }).join("");
 
+// portrait and square covers (vertical renders and videos) keep their own shape, never cropped and never padded:
+// in each group the landscape work fills its rows first, then the tall pieces sit side by side in rows of their own
+// (4:5 and square at a third of the width, 9:16 videos at a quarter). Shapes come from `ratio` in projects.js
+// or are measured from the cover itself.
+const RATIO = {};
+const tallR = r => r && r < 1.15;
+function relayout() {
+  GROUPS.forEach(([c, list]) => {
+    let after = [...grid.querySelectorAll(".cat-head")].find(h => h.dataset.cat === c);
+    const items = list.map(([p]) => [p, [...grid.querySelectorAll("a.card")].find(a => a.getAttribute("href") === "#p-" + p.id), p.ratio || RATIO[p.id]]);
+    const land = items.filter(x => !tallR(x[2])), tall = items.filter(x => tallR(x[2])), ws = rowWidths(land.length);
+    const place = (el, w, r) => {
+      el.classList.remove("w3", "w4", "w6", "w8"); el.classList.add("w" + w); el.classList.toggle("tall", !!r);
+      el.querySelector(".plate").style.aspectRatio = r ? String(r) : "";
+      after.after(el); after = el;
+    };
+    land.forEach(([, el], k) => { el.classList.remove("row-start"); place(el, ws[k], 0); });
+    tall.forEach(([, el, r], k) => { el.classList.toggle("row-start", k === 0 && land.length > 0); place(el, r < 0.7 ? 3 : 4, r); });   // tall pieces start their own row
+  });
+  fitAll();
+}
+let relayT = 0; const relayoutSoon = () => { clearTimeout(relayT); relayT = setTimeout(relayout, 60); };
+PROJECTS.forEach(p => {
+  if (p.ratio || !p.cover) return;
+  if (isVideo(p.cover)) {
+    const v = document.createElement("video"); v.muted = true; v.preload = "metadata";
+    v.onloadedmetadata = () => { if (v.videoWidth) { RATIO[p.id] = v.videoWidth / v.videoHeight; relayoutSoon(); } v.removeAttribute("src"); v.load(); };
+    v.src = p.cover;
+  } else {
+    const im = new Image(); im.onload = () => { RATIO[p.id] = im.naturalWidth / im.naturalHeight; relayoutSoon(); }; im.src = p.cover;
+  }
+});
+
 const cats = ["All", ...CAT_ORDER.filter(c => PROJECTS.some(p => p.category === c)),
               ...[...new Set(PROJECTS.map(p => p.category))].filter(c => !CAT_ORDER.includes(c))];
 filters.innerHTML = cats.map(c => `<button type="button" data-c="${esc(c)}" aria-pressed="${c === "All"}">${esc(c)}<span>${c === "All" ? PROJECTS.length : PROJECTS.filter(p => p.category === c).length}</span></button>`).join("");
@@ -206,6 +239,7 @@ function fitCover(img) {
 function fitAll() { grid.querySelectorAll(".plate img").forEach(fitCover); }
 grid.querySelectorAll(".plate img").forEach(img => { if (img.complete) fitCover(img); else img.addEventListener("load", () => fitCover(img), { once: true }); });
 addEventListener("resize", () => { clearTimeout(fitAll.t); fitAll.t = setTimeout(fitAll, 150); });
+relayout();
 
 function paintAll() {
   grid.querySelectorAll("canvas").forEach(cv => { if (cv.offsetParent) paint(cv, PROJECTS[cv.dataset.i].placeholder, +(cv.dataset.v || 0)); });
@@ -236,10 +270,10 @@ function openProject(id) {
     const r = el.querySelector(".cmp-range");
     r.addEventListener("input", () => el.style.setProperty("--pos", r.value + "%"));
     // image sliders take the render's own shape (portrait stays portrait), at most 85% of the screen tall
-    const im = el.querySelector(".cmp-after img");
-    const shape = () => { if (!im.naturalWidth) return; const k = im.naturalWidth / im.naturalHeight;
+    const im = el.querySelector(".cmp-after img, .cmp-after video");
+    const shape = () => { const w = im.naturalWidth || im.videoWidth, h = im.naturalHeight || im.videoHeight; if (!w) return; const k = w / h;
       el.style.aspectRatio = k; el.style.width = `min(100%, ${(85 * k).toFixed(2)}vh)`; el.style.justifySelf = "center"; };
-    if (im) { if (im.complete) shape(); else im.addEventListener("load", shape, { once: true }); }
+    if (im) { if (im.naturalWidth || im.videoWidth) shape(); else im.addEventListener(im.tagName === "VIDEO" ? "loadedmetadata" : "load", shape, { once: true }); }
     syncCompare(el);
   });
   // more projects: previous / next in the same category, plus a jump to each other category
