@@ -653,16 +653,13 @@ document.getElementById("copy").addEventListener("click", async e => {
     const d = Object.fromEntries(new FormData(f));
     btn.disabled = true; btn.textContent = "Sending…"; say("");
     try {
-      const r = await fetch("https://formsubmit.co/ajax/studiovoja@gmail.com", {
-        method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ name: d.name, email: d.email, project: d.project, message: d.message,
-          _subject: "New project enquiry: " + d.project + " from " + d.name, _replyto: d.email, _template: "table", _captcha: "false", _honey: "" })
-      });
-      const j = await r.json().catch(() => ({}));
-      if (!r.ok || String(j.success) === "false") {
-        console.warn("[contact] FormSubmit said:", r.status, j.message || j);
-        throw new Error(j.message || "failed");
-      }
+      // FormSubmit's AJAX endpoint doesn't send CORS headers, so the browser blocks it. Post it like a normal form
+      // instead (no-cors): the message still goes through, we just can't read the reply.
+      const fd = new FormData();
+      Object.entries({ name: d.name, email: d.email, project: d.project, message: d.message,
+        _subject: "New project enquiry: " + d.project + " from " + d.name, _replyto: d.email,
+        _template: "table", _captcha: "false", _honey: "" }).forEach(([k, v]) => fd.append(k, v));
+      await fetch("https://formsubmit.co/studiovoja@gmail.com", { method: "POST", mode: "no-cors", body: fd });
       const first = d.name.trim().split(/\s+/)[0];
       f.classList.add("sent");
       f.innerHTML = '<div class="done" tabindex="-1"><h3>Thanks, <em></em>. Message sent.</h3><p>I usually reply within a day or two.</p></div>';
