@@ -479,19 +479,24 @@ function crackShape(k, W) {                               // k: how far the crac
         { opacity: 1, transform: `translate(calc(-50% + ${dx * 1.3}px), calc(-50% + ${dy * 1.3}px)) scale(.85)` }],
         { delay: FALL + 10, duration: 380, easing: "cubic-bezier(.2,.7,.35,1)", fill: "forwards" });
     });
-    // tap the puddle to wipe it away
-    // tap the puddle to wipe it away: a quick swipe smears it sideways and it's gone
-    puddle.addEventListener("mousedown", e => e.preventDefault());   // no text selection when wiping
+    // tap the puddle: it gets slurped up and you land on a random project
+    puddle.title = "Surprise me";
+    puddle.addEventListener("mousedown", e => e.preventDefault());   // no text selection when tapping
     puddle.addEventListener("click", () => {
-      if (el.dataset.wiping) return; el.dataset.wiping = "1";
-      const dir = Math.random() < 0.5 ? -1 : 1, at = `translate(${dx}px,${dy}px)`;
+      if (el.dataset.going) return; el.dataset.going = "1";
+      const at = `translate(${dx}px,${dy}px)`;
       el.animate([
-        { transform: at },
-        { transform: `${at} translateX(${dir * 16}px) scale(1.6,.7)`, offset: .3 },
-        { transform: `${at} translateX(${dir * 42}px) scale(2,.4)`, offset: .65 },
-        { transform: `${at} translateX(${dir * 95}px) scale(.1,.12)` }],
-        { duration: 300, easing: "cubic-bezier(.4,0,.8,.6)", fill: "forwards" })
-        .finished.then(() => el.remove());
+        { transform: `${at} scale(1)` },
+        { transform: `${at} scale(1.25,.8)`, offset: .3 },
+        { transform: `${at} scale(.85,1.2)`, offset: .55 },
+        { transform: `${at} scale(.05)` }],
+        { duration: 360, easing: "cubic-bezier(.5,0,.75,0)", fill: "forwards" })
+        .finished.then(() => {
+          el.remove();
+          const pool = PROJECTS.filter(q => q.id !== currentId);
+          const pick = (pool.length ? pool : PROJECTS)[Math.floor(Math.random() * (pool.length || PROJECTS.length))];
+          if (pick) location.hash = "p-" + pick.id;
+        });
     });
     const all = document.querySelectorAll(".yolk-splat"); if (all.length > 5) all[0].remove(); // keep at most 5 on the page
   }
