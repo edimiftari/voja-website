@@ -157,7 +157,7 @@ const grid = document.getElementById("grid"), filters = document.getElementById(
 grid.innerHTML = PROJECTS.map((p, i) => `
   <a class="card ${SIZE[p.size] || "w4"}${isHatch(p) ? " hatch" : ""}" href="#p-${esc(p.id)}" data-cat="${esc(p.category)}">
     <div class="plate">${cardMedia(p, i)}${ytList(p).length || (p.media || []).some(m => ytId(typeof m === "string" ? m : m.src)) ? `<span class="play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></span>` : ""}<span class="view">View project</span></div>
-    <div class="cap"><h3>${esc(p.title)}</h3><span class="label">${esc(p.category)} · ${esc(p.year)}</span></div>
+    <div class="cap"><h3>${esc(p.title)}</h3><span class="label">${esc(p.category)}${p.year ? " · " + esc(p.year) : ""}</span></div>
   </a>`).join("");
 
 const cats = ["All", ...CAT_ORDER.filter(c => PROJECTS.some(p => p.category === c)),
@@ -194,7 +194,7 @@ function openProject(id) {
   html += media.map(m => ytId(m.src) ? ytEmbed(ytId(m.src), p.title, m.wide === false ? " half" : "") : `<figure class="g real${m.wide ? "" : " half"}">${mediaTag(m.src, p.title, { controls: isVideo(m.src) && m.controls })}${m.caption ? `<figcaption class="label">${esc(m.caption)}</figcaption>` : ""}</figure>`).join("");
   const placeholder = !html && !p.compare;
   if (placeholder) html = `<div class="g"><canvas></canvas></div><div class="g half"><canvas></canvas></div><div class="g half"><canvas></canvas></div>`;
-  if (p.compare) html = compareTag(p) + html;
+  if (p.compare) html = [].concat(p.compare).map(c => compareTag({ ...p, compare: c })).join("") + html;   // one or several sliders
   gal.innerHTML = html;
   gal.querySelectorAll(".compare").forEach(el => {
     const r = el.querySelector(".cmp-range");
