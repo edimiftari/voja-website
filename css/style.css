@@ -287,7 +287,7 @@ header.top .menu-btn{color:#EBEBDF}
 /* top-down: the yolk pops toward you, drops away (shrinks) onto the page, then spreads into a wobbling puddle.
    Size is animated (not scaled) so the small highlight dot stays small. Flat colours only, no shading. */
 #intro .yolk{width:42px; height:42px; opacity:0; transform:translate(-50%,-50%);
-  background:radial-gradient(circle at 36% 32%, #FFDEBA 0 4px, #0000 4.5px) #EC6E22;   /* flat yolk with a solid highlight dot */
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='138 253 470 470'%3E%3Cpath fill='%23FFDEBA' transform='rotate(-90 373 385)' d='M392 485C403 478 409 459 409 434C409 415 406 397 399 376C394 363 392 358 385 352C376 343 367 341 360 347C353 352 353 358 357 373C362 395 364 416 362 446L361 468L363 473C369 486 382 492 392 485ZM363 317C368 313 370 309 370 302C369 288 356 276 348 279C344 280 340 285 339 290C337 296 338 307 341 311C345 319 356 322 363 317Z'/%3E%3C/svg%3E") center/contain no-repeat #EC6E22;   /* flat yolk; highlight is the Voja egg's "i", lying on its side */
   animation:yolkFall .7s linear .3s forwards}
 @keyframes yolkFall{
   0%{opacity:0; width:18px; height:18px; animation-timing-function:ease-out}
@@ -358,7 +358,7 @@ html, body{overscroll-behavior-y:none}
 .yolk-splat{position:absolute; z-index:8; width:240px; height:240px; filter:url(#goo2); pointer-events:none}
 .yolk-splat > *{position:absolute; left:50%; top:50%; border-radius:50%; transform:translate(-50%,-50%)}
 .yolk-splat .puddle{width:24px; height:24px; pointer-events:auto; cursor:pointer;
-  background:radial-gradient(circle at 36% 32%, #FFDEBA 0 4px, #0000 4.5px) #EC6E22}   /* flat yolk with a solid highlight dot */
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='138 253 470 470'%3E%3Cpath fill='%23FFDEBA' transform='rotate(-90 373 385)' d='M392 485C403 478 409 459 409 434C409 415 406 397 399 376C394 363 392 358 385 352C376 343 367 341 360 347C353 352 353 358 357 373C362 395 364 416 362 446L361 468L363 473C369 486 382 492 392 485ZM363 317C368 313 370 309 370 302C369 288 356 276 348 279C344 280 340 285 339 290C337 296 338 307 341 311C345 319 356 322 363 317Z'/%3E%3C/svg%3E") center/contain no-repeat #EC6E22}   /* flat yolk; highlight is the Voja egg's "i", lying on its side */
 .yolk-splat i{width:var(--s,12px); height:var(--s,12px); background:#EC6E22; opacity:0}
 
 /* ---------- projects that hatch ---------- */
@@ -458,3 +458,4 @@ html, body{overscroll-behavior-y:none}
 .compare .cmp-sound svg{width:22px; height:22px; fill:currentColor}
 .compare .cmp-sound:hover{transform:scale(1.06)}
 .compare .cmp-sound[aria-pressed="true"]{background:var(--ginger); color:#fff}
+
