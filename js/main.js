@@ -286,15 +286,17 @@ function crackAt(s) {                                     // point at distance s
   }
 }
 function crackShape(k, W) {                               // k: how far the crack has run (0-1), W: full thickness
-  if (k <= 0.001) return "";
+  if (!(k > 0.001) || !(W > 0)) return "";            // also catches NaN
+  k = Math.min(1, k);
   const end = k * CRACK_LEN, taper = Math.min(130, end), N = Math.max(12, Math.round(end / 2.5)), L = [], R = [];
   for (let j = 0; j <= N; j++) {
     const s = j === N ? end : end * j / N, [x, y] = crackAt(s), [x0, y0] = crackAt(Math.max(0, s - 12)), [x1, y1] = crackAt(Math.min(CRACK_LEN, s + 12));   // smoothed along the whole zigzag, so the tip never flips as it grows
     const len = Math.hypot(x1 - x0, y1 - y0) || 1, nx = -(y1 - y0) / len, ny = (x1 - x0) / len;
     const t = Math.max(0, Math.min(1, (end - s) / taper)), w = W / 2 * Math.sqrt(t) * (1 + 0.12 * Math.sin(s / 17));   // full, then a sharp taper at the tip
+    if (![x, y, nx, ny, w].every(Number.isFinite)) continue;   // never write NaN into the path
     L.push(`${(x + nx * w).toFixed(1)} ${(y + ny * w).toFixed(1)}`); R.unshift(`${(x - nx * w).toFixed(1)} ${(y - ny * w).toFixed(1)}`);
   }
-  return `M${L.join(" L")} L${R.join(" L")}Z`;
+  return L.length ? `M${L.join(" L")} L${R.join(" L")}Z` : "";
 }
 
 /* ---------- pull-to-refresh egg (touch screens) ---------- */
@@ -638,7 +640,9 @@ document.getElementById("copy").addEventListener("click", async e => {
   setTimeout(() => b.textContent = "Copy email", 2200);
 });
 
-/* ---------- contact form (FormSubmit, sends to studiovoja@gmail.com) ---------- */
+/* ---------- contact form, sends to studiovoja@gmail.com ---------- */
+// Web3Forms access key (free, from web3forms.com, tied to studiovoja@gmail.com). Public by design, safe to keep here.
+const WEB3FORMS_KEY = "";
 (() => {
   const f = document.getElementById("cform"); if (!f) return;
   const st = document.getElementById("fstatus"), btn = f.querySelector("button[type=submit]");
@@ -653,13 +657,23 @@ document.getElementById("copy").addEventListener("click", async e => {
     const d = Object.fromEntries(new FormData(f));
     btn.disabled = true; btn.textContent = "Sending…"; say("");
     try {
-      // FormSubmit's AJAX endpoint doesn't send CORS headers, so the browser blocks it. Post it like a normal form
-      // instead (no-cors): the message still goes through, we just can't read the reply.
-      const fd = new FormData();
-      Object.entries({ name: d.name, email: d.email, project: d.project, message: d.message,
-        _subject: "New project enquiry: " + d.project + " from " + d.name, _replyto: d.email,
-        _template: "table", _captcha: "false", _honey: "" }).forEach(([k, v]) => fd.append(k, v));
-      await fetch("https://formsubmit.co/studiovoja@gmail.com", { method: "POST", mode: "no-cors", body: fd });
+      if (WEB3FORMS_KEY) {
+        // Web3Forms: CORS-friendly, replies with JSON so we know it really arrived
+        const r = await fetch("https://api.web3forms.com/submit", {
+          method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({ access_key: WEB3FORMS_KEY, name: d.name, email: d.email, project: d.project, message: d.message,
+            subject: "New project enquiry: " + d.project + " from " + d.name, from_name: "vojastudio.com", botcheck: "" })
+        });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok || !j.success) { console.warn("[contact] Web3Forms said:", r.status, j.message || j); throw new Error(j.message || "failed"); }
+      } else {
+        // fallback: FormSubmit as a plain form post (its AJAX endpoint is blocked by CORS)
+        const fd = new FormData();
+        Object.entries({ name: d.name, email: d.email, project: d.project, message: d.message,
+          _subject: "New project enquiry: " + d.project + " from " + d.name, _replyto: d.email,
+          _template: "table", _captcha: "false", _honey: "" }).forEach(([k, v]) => fd.append(k, v));
+        await fetch("https://formsubmit.co/studiovoja@gmail.com", { method: "POST", mode: "no-cors", body: fd });
+      }
       const first = d.name.trim().split(/\s+/)[0];
       f.classList.add("sent");
       f.innerHTML = '<div class="done" tabindex="-1"><h3>Thanks, <em></em>. Message sent.</h3><p>I usually reply within a day or two.</p></div>';
