@@ -213,13 +213,43 @@ const cats = ["All", ...CAT_ORDER.filter(c => PROJECTS.some(p => p.category === 
 filters.innerHTML = cats.map(c => `<button type="button" data-c="${esc(c)}" aria-pressed="${c === "All"}">${esc(c)}<span>${c === "All" ? PROJECTS.length : PROJECTS.filter(p => p.category === c).length}</span></button>`).join("");
 filters.addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
-  filters.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
-  const c = b.dataset.c;
-  grid.querySelectorAll(".card").forEach(el => { el.hidden = !(c === "All" || el.dataset.cat === c); });
-  grid.querySelectorAll(".cat-head").forEach(el => { el.hidden = c !== "All"; });
-  grid.classList.toggle("filtered", c !== "All");
-  paintAll(); fitAll();
+  location.hash = b.dataset.c === "All" ? "work" : "c-" + catSlug(b.dataset.c);
 });
+
+/* ---------- work: one stack per category -> that category's projects -> a project page ----------
+   Stacks are linkable as #c-<category>, e.g. vojastudio.com/#c-packaging. Moving between the stacks and a
+   category is a short sideways swipe: a category comes in from the right, the stacks come back from the left. */
+const stacks = document.getElementById("stacks"), catView = document.getElementById("cat-view");
+const catSlug = c => c.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const catFromSlug = s => GROUPS.map(([c]) => c).find(c => catSlug(c) === s);
+stacks.innerHTML = GROUPS.map(([c, list]) => {
+  const top = list.slice(0, 3);                           // the first three covers, first one on top
+  const sheets = [0, 1, 2].map(k => top[k] ? `<div class="sheet s${k + 1}">${coverTag(top[k][0], top[k][1], k)}</div>`
+                                           : `<div class="sheet s${k + 1} blank"></div>`).reverse().join("");
+  return `<a class="stack" href="#c-${catSlug(c)}" data-cat="${esc(c)}"><div class="pile">${sheets}<span class="view">Open ${esc(c)}</span></div>` +
+    `<div class="cap"><h3>${esc(c)}</h3><span class="label">${list.length} ${list.length === 1 ? "project" : "projects"}</span></div></a>`;
+}).join("");
+let activeCat = null;
+function showCat(c, animate = booted) {
+  if (c === activeCat) return;
+  const back = !c;
+  activeCat = c || null;
+  filters.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.c === (c || "All"))));
+  if (c) {
+    grid.querySelectorAll(".card").forEach(el => { el.hidden = el.dataset.cat !== c; });
+    grid.querySelectorAll(".cat-head").forEach(el => { el.hidden = el.dataset.cat !== c; });
+  }
+  stacks.hidden = !!c; catView.hidden = !c;
+  if (c) relayout();
+  paintAll();
+  if (!animate) return;
+  const work = document.getElementById("work"), head = document.querySelector("header.top");
+  const top = work.getBoundingClientRect().top - (head ? head.offsetHeight : 0);
+  if (top < 0) scrollTo(0, scrollY + top);                // keep the top of the work section in view
+  const items = c ? [catView.querySelector(".cat-back"), ...grid.querySelectorAll(".cat-head:not([hidden]), .card:not([hidden])")] : [...stacks.children];
+  items.forEach((el, k) => el.animate([{ opacity: 0, transform: `translateX(${back ? -80 : 80}px)` }, { opacity: 1, transform: "none" }],
+    { duration: 600, delay: Math.min(k, 8) * 45, easing: "cubic-bezier(.2,.7,.1,1)", fill: "backwards" }));
+}
 /* ---------- tall covers: never crop the product ----------
    If a cover is clearly taller than its card (portrait or square renders), show the whole image instead of cropping it.
    The spare sides are filled with a soft, blurred copy of the same image, so the card still reads as one picture. */
@@ -240,7 +270,7 @@ addEventListener("resize", () => { clearTimeout(fitAll.t); fitAll.t = setTimeout
 relayout();
 
 function paintAll() {
-  grid.querySelectorAll("canvas").forEach(cv => { if (cv.offsetParent) paint(cv, PROJECTS[cv.dataset.i].placeholder, +(cv.dataset.v || 0)); });
+  document.querySelectorAll("#grid canvas, #stacks canvas").forEach(cv => { if (cv.offsetParent) paint(cv, PROJECTS[cv.dataset.i].placeholder, +(cv.dataset.v || 0)); });
 }
 
 /* ---------- project page (opens over the homepage, linkable as #p-<id>) ---------- */
@@ -298,7 +328,7 @@ function closeProject(clearHash = true) {
     ov.hidden = true; document.body.style.overflow = ""; currentId = null; closing = false;
     document.title = DEFAULT_TITLE;
     ov.querySelectorAll("video").forEach(v => v.pause());
-    if (clearHash && location.hash.startsWith("#p-")) history.replaceState(null, "", "#work");
+    if (clearHash && location.hash.startsWith("#p-")) history.replaceState(null, "", activeCat ? "#c-" + catSlug(activeCat) : "#work");
     scrollTo(0, lastScroll);
   };
   if (booted) { closing = true; swipeOut(finish); } else finish();
@@ -310,6 +340,7 @@ document.querySelectorAll("a.logo").forEach(a => a.addEventListener("click", e =
   e.preventDefault();
   if (typeof setMenu === "function") setMenu(false);
   history.replaceState(null, "", location.pathname);
+  showCat(null, false);                                   // back to the stacks
   if (!ov.hidden) { lastScroll = 0; closeProject(false); }
   else scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 }));
@@ -342,7 +373,16 @@ function swipeOut(done, t = ov) {
       () => { if (t !== ov) done(); });   // a project cancelled mid-close was opened again, so it stays open
 }
 const DEFAULT_TITLE = document.title;
-function route() { const h = location.hash.slice(1); if (h.startsWith("p-")) openProject(h.slice(2)); else closeProject(false); }
+function route() {
+  const h = location.hash.slice(1);
+  if (h.startsWith("p-")) return openProject(h.slice(2));
+  closeProject(false);
+  if (h.startsWith("c-")) {
+    showCat(catFromSlug(h.slice(2)) || null);
+    if (!booted) document.getElementById("work").scrollIntoView();   // opened from a shared link: start at the work
+  }
+  else if (!h || h === "work" || h === "top") showCat(null);   // other links (About, Contact...) leave the work section as it is
+}
 document.getElementById("close").onclick = () => closeProject();
 addEventListener("keydown", e => { if (e.key === "Escape") closeProject(); });
 addEventListener("hashchange", route);
