@@ -72,7 +72,6 @@ function mediaTag(src, alt, opts = {}) {
 }
 
 /* ---------- card media: covers that crack open ("hatch") to show a video loop ---------- */
-const CRACK = "0,52 12,46 25,56 38,45 50,55 62,46 75,56 88,47 100,53";
 const isHatch = p => !!p.loop || (!p.cover && !ytList(p)[0]);  // projects with a loop, plus the drawn placeholders
 function coverTag(p, i, v = 0) {
   if (p.cover) return mediaTag(p.cover, p.title);
@@ -83,9 +82,8 @@ function cardMedia(p, i) {
   if (!isHatch(p)) return coverTag(p, i);
   const inside = p.loop ? `<video data-src="${esc(p.loop)}" muted loop playsinline preload="none"></video>`
                         : `<canvas data-i="${i}" data-v="1" aria-hidden="true"></canvas>`;
-  // the crack line sits on the cut: each half keeps its side of the line as an orange rim and carries it away
-  const rim = `<svg class="card-crack" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="${CRACK}"/></svg>`;
-  return `<div class="hatch-in">${inside}</div><div class="shell s-top">${coverTag(p, i)}${rim}</div><div class="shell s-bot">${coverTag(p, i)}${rim}</div>`;
+  // one cover on top that fades away on hover to show the loop underneath
+  return `<div class="hatch-in">${inside}</div><div class="shell">${coverTag(p, i)}</div>`;
 }
 
 /* ---------- before / after slider (project pages) ----------
@@ -286,10 +284,11 @@ function openProject(id) {
     (cats.length ? `<div class="p-cats"><span class="label">Other categories</span><div>${cats.map(c =>
       `<a class="btn ghost" href="#p-${esc(PROJECTS.find(q => q.category === c).id)}">${esc(c)} →</a>`).join("")}</div></div>` : "");
   document.title = `${p.title} · Voja Studio`;
-  const fresh = ov.hidden;
-  if (fresh) lastScroll = scrollY;
+  const fresh = ov.hidden || closing;   // reopened mid-close: swipe back in from where it is
+  if (ov.hidden) lastScroll = scrollY;
+  closing = false;
   ov.hidden = false; ov.scrollTop = 0; document.body.style.overflow = "hidden";
-  if (fresh && booted) crackIn();
+  if (fresh && booted) swipeIn();
   requestAnimationFrame(() => gal.querySelectorAll("canvas").forEach((cv, k) => paint(cv, p.placeholder, cv.dataset.v ? +cv.dataset.v : k)));
   document.getElementById("close").focus({ preventScroll: true });
 }
@@ -302,7 +301,7 @@ function closeProject(clearHash = true) {
     if (clearHash && location.hash.startsWith("#p-")) history.replaceState(null, "", "#work");
     scrollTo(0, lastScroll);
   };
-  if (booted) { closing = true; crackOut(finish); } else finish();
+  if (booted) { closing = true; swipeOut(finish); } else finish();
 }
 
 /* ---------- the voja logo (header and project page) always goes back to the top of the homepage ---------- */
@@ -317,42 +316,30 @@ document.querySelectorAll("a.logo").forEach(a => a.addEventListener("click", e =
 
 /* ---------- shell-crack page transition: a crack runs across the screen and the project splits open along it ---------- */
 let booted = false, closing = false;
-const CRACK_PTS = [[0,52],[8,47],[17,55],[26,46],[35,54],[44,45],[53,55],[62,46],[71,54],[80,46],[89,55],[100,49]];
-const crackClip = s => `polygon(${CRACK_PTS.map(([x, y]) => `${x}% ${y - s}%`).join(",")},${[...CRACK_PTS].reverse().map(([x, y]) => `${x}% ${y + s}%`).join(",")})`;
-const fx = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-fx.id = "crackfx"; fx.setAttribute("viewBox", "0 0 100 100"); fx.setAttribute("preserveAspectRatio", "none"); fx.setAttribute("aria-hidden", "true");
-const PTS = CRACK_PTS.map(p => p.join(",")).join(" ");
-fx.innerHTML = `<polyline class="whole" points="${PTS}"/><polyline class="rim" points="${PTS}"/><polyline class="rim" points="${PTS}"/>`;
-document.body.appendChild(fx);
-const [fxLine, rimTop, rimBot] = fx.children;
-const EASE = "cubic-bezier(.7,0,.2,1)";
-const stopFx = (t = ov) => [fx, ...fx.children, t].forEach(el => el.getAnimations().forEach(a => a.cancel()));
-// open: the crack runs across the screen, then splits in two and each edge rides out with the opening
-function crackIn(t = ov) {
-  stopFx(t);
-  fx.style.opacity = 1;
-  fxLine.animate([{ strokeDashoffset: 4000, visibility: "visible" }, { strokeDashoffset: 0, visibility: "visible" }], { duration: 170, easing: "ease-out", fill: "forwards" });
-  fxLine.animate([{ visibility: "hidden" }, { visibility: "hidden" }], { duration: 1, delay: 170, fill: "forwards" });
-  const split = { duration: 560, delay: 170, easing: EASE, fill: "forwards" };
-  rimTop.animate([{ transform: "translateY(0)", visibility: "visible" }, { transform: "translateY(-62px)", visibility: "visible" }], split);
-  rimBot.animate([{ transform: "translateY(0)", visibility: "visible" }, { transform: "translateY(62px)", visibility: "visible" }], split);
-  t.animate([{ clipPath: crackClip(0) }, { clipPath: crackClip(62) }], { duration: 560, delay: 170, easing: EASE, fill: "backwards" })
-    .finished.then(() => { fx.style.opacity = 0; }, () => {});
+/* ---------- page transition (project pages and the showreel): a swipe with parallax ----------
+   the new page slides in from the right at full speed while the homepage drifts left at a third of the speed
+   and dims under it; closing plays it backwards */
+const SWIPE_EASE = "cubic-bezier(.77,0,.18,1)", PAGE_SHIFT = "-30%";
+const shade = document.createElement("div"); shade.id = "swipe-shade"; shade.setAttribute("aria-hidden", "true");
+document.body.appendChild(shade);
+const pageLayers = () => [document.querySelector("header.top"), document.getElementById("top"), document.querySelector("footer")].filter(Boolean);
+const stopSwipe = t => [t, shade, ...pageLayers()].forEach(el => el.getAnimations().forEach(a => a.cancel()));
+function swipeIn(t = ov) {
+  stopSwipe(t);
+  const o = { duration: 700, easing: SWIPE_EASE, fill: "forwards" };
+  pageLayers().forEach(el => el.animate([{ transform: "translateX(0)" }, { transform: `translateX(${PAGE_SHIFT})` }], o));
+  shade.animate([{ opacity: 0, visibility: "visible" }, { opacity: 1, visibility: "visible" }], o);
+  t.animate([{ transform: "translateX(100%)" }, { transform: "translateX(0)" }], o)
+    .finished.then(() => stopSwipe(t), () => {});   // once covered, the homepage goes back to normal underneath
 }
-// close: the two edges come back together, meet as one crack, and the crack heals away
-function crackOut(done, t = ov) {
-  stopFx(t);
-  fx.style.opacity = 1;
-  const meet = { duration: 440, easing: EASE, fill: "forwards" };
-  rimTop.animate([{ transform: "translateY(-62px)", visibility: "visible" }, { transform: "translateY(0)", visibility: "visible" }], meet);
-  rimBot.animate([{ transform: "translateY(62px)", visibility: "visible" }, { transform: "translateY(0)", visibility: "visible" }], meet);
-  t.animate([{ clipPath: crackClip(62) }, { clipPath: crackClip(0) }], meet)
-    .finished.then(() => {
-      done(); t.getAnimations().forEach(a => a.cancel());
-      [rimTop, rimBot].forEach(r => r.getAnimations().forEach(a => a.cancel()));
-      fxLine.animate([{ strokeDashoffset: 0, visibility: "visible" }, { strokeDashoffset: -4000, visibility: "visible" }],
-        { duration: 220, easing: "ease-in" }).finished.then(() => { fx.style.opacity = 0; }, () => {});
-    }, () => done());
+function swipeOut(done, t = ov) {
+  stopSwipe(t);
+  const o = { duration: 560, easing: SWIPE_EASE, fill: "forwards" };
+  pageLayers().forEach(el => el.animate([{ transform: `translateX(${PAGE_SHIFT})` }, { transform: "translateX(0)" }], o));
+  shade.animate([{ opacity: 1, visibility: "visible" }, { opacity: 0, visibility: "visible" }], o);
+  t.animate([{ transform: "translateX(0)" }, { transform: "translateX(100%)" }], o)
+    .finished.then(() => { done(); stopSwipe(t); },
+      () => { if (t !== ov) done(); });   // a project cancelled mid-close was opened again, so it stays open
 }
 const DEFAULT_TITLE = document.title;
 function route() { const h = location.hash.slice(1); if (h.startsWith("p-")) openProject(h.slice(2)); else closeProject(false); }
@@ -640,7 +627,7 @@ addEventListener("keydown", e => { if (e.key === "Escape") setMenu(false); });
   const req = () => { if (!ticking) { ticking = true; requestAnimationFrame(morph); } };
   addEventListener("scroll", req, { passive: true }); addEventListener("resize", req); morph();
 
-  // full reel with sound, opened with the same shell crack as the projects
+  // full reel with sound, opened with the same swipe as the projects
   let closingReel = false;
   const openReel = () => {
     if (!rov.hidden || !id) return;
@@ -648,12 +635,12 @@ addEventListener("keydown", e => { if (e.key === "Escape") setMenu(false); });
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
       referrerpolicy="strict-origin-when-cross-origin" allowfullscreen title="Voja Studio showreel"></iframe>`;
     rov.hidden = false; document.body.style.overflow = "hidden";
-    crackIn(rov); rclose.focus({ preventScroll: true });
+    swipeIn(rov); rclose.focus({ preventScroll: true });
   };
   const closeReel = () => {
     if (rov.hidden || closingReel) return;
     closingReel = true;
-    crackOut(() => { rov.hidden = true; frame.innerHTML = ""; document.body.style.overflow = ""; closingReel = false; play.focus({ preventScroll: true }); }, rov);
+    swipeOut(() => { rov.hidden = true; frame.innerHTML = ""; document.body.style.overflow = ""; closingReel = false; play.focus({ preventScroll: true }); }, rov);
   };
   win.addEventListener("click", openReel);
   rclose.addEventListener("click", closeReel);
