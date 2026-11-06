@@ -77,7 +77,7 @@ section{scroll-margin-top:80px}
 .filters button{font:500 14px/1 var(--body); color:var(--muted); background:transparent; border:1.5px solid var(--rule); border-radius:999px; padding:9px 15px; cursor:pointer; transition:.2s}
 .filters button:hover{color:var(--ink); border-color:var(--muted)}
 .filters button[aria-pressed="true"]{background:var(--ink); color:var(--parchment); border-color:var(--ink)}
-.filters button span{font-size:11px; margin-left:6px; opacity:.6; font-variant-numeric:tabular-nums}
+.filters button .n{font-size:11px; margin-left:6px; opacity:.6; font-variant-numeric:tabular-nums}
 
 /* grid */
 .work{padding-block:16px 112px}
@@ -142,7 +142,7 @@ main{overflow-x:clip}   /* tilted and thrown stack cards never cause sideways sc
 .stack .cap{flex-wrap:wrap; row-gap:4px}
 .stack .now{flex-basis:100%; margin:0; display:flex; justify-content:space-between; gap:12px; font-size:14px; color:var(--muted)}
 .stack .now b{font-weight:500; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.stack .now span{font-variant-numeric:tabular-nums; white-space:nowrap}
+.stack .now > span{font-variant-numeric:tabular-nums; white-space:nowrap}
 .cat-back{display:inline-block; margin-bottom:22px; font:600 14px/1 var(--body); color:var(--ink); text-decoration:none;
   border:1.5px solid var(--ink); border-radius:999px; padding:10px 16px; transition:background .2s, color .2s}
 .cat-back:hover{background:var(--ink); color:var(--parchment)}
@@ -271,6 +271,15 @@ header.top nav.links a:hover{color:#EBEBDF}
 header.top nav.links a.cta{color:#EBEBDF; border-color:#EBEBDF}
 header.top nav.links a.cta:hover{background:#EBEBDF; color:#323232}
 header.top .menu-btn{color:#EBEBDF}
+/* language switch (EN | SQ): logo on the left, then the menu (or the phone menu button) and the switch on the right */
+header.top .logo{margin-right:auto}
+nav.links{order:1} .lang{order:2} .menu-btn{order:3}
+.lang{display:flex; align-items:center; gap:2px; padding:3px; border:1.5px solid rgba(235,235,223,.28); border-radius:999px}
+.lang button{font:600 12px/1 var(--body); letter-spacing:.06em; color:rgba(235,235,223,.6); background:none; border:0; border-radius:999px; padding:6px 9px; cursor:pointer; transition:background .2s, color .2s}
+.lang button:hover{color:#EBEBDF}
+.lang button[aria-pressed="true"]{background:#EBEBDF; color:#323232}
+/* only the chosen language shows (both are in the page, side by side) */
+html[lang="sq"] [data-l="en"], html:not([lang="sq"]) [data-l="sq"]{display:none!important}
 .hero{background:#323232; color:#EBEBDF}
 .hero .sub{border-top-color:rgba(235,235,223,.16)}
 .hero .sub p{color:rgba(235,235,223,.85)}
@@ -524,8 +533,8 @@ html, body{overscroll-behavior-y:none}
 .cform .ptype legend{padding:0; margin-bottom:10px}
 .cform .ptype label{flex-direction:row; cursor:pointer}
 .cform .ptype input{position:absolute; opacity:0; width:1px; height:1px}
-.cform .ptype span{font:600 13px/1 var(--body); padding:10px 15px; border-radius:999px; border:1.5px solid color-mix(in srgb, var(--parchment) 35%, transparent); transition:background .2s, border-color .2s, color .2s}
-.cform .ptype label:hover span{border-color:var(--parchment)}
+.cform .ptype label > span{font:600 13px/1 var(--body); padding:10px 15px; border-radius:999px; border:1.5px solid color-mix(in srgb, var(--parchment) 35%, transparent); transition:background .2s, border-color .2s, color .2s}
+.cform .ptype label:hover > span{border-color:var(--parchment)}
 .cform .ptype input:checked + span{background:var(--azure); border-color:var(--azure); color:var(--ink)}
 .cform .ptype input:focus-visible + span{outline:2px solid var(--ginger); outline-offset:2px}
 .cform .hp{position:absolute; left:-9999px; width:1px; height:1px; opacity:0}

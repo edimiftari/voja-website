@@ -8,6 +8,31 @@ const SIZE = { large: "w8", medium: "w6", small: "w4" };
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const isVideo = src => /\.(mp4|webm|mov)(\?|$)/i.test(src);
 
+/* ---------- language: English / Albanian (the EN | SQ switch in the header) ----------
+   Text in index.html carries both versions side by side: <span data-l="en">…</span><span data-l="sq">…</span>,
+   and the CSS shows the one matching <html lang>. Project texts come from each project's `sq` in projects.js.
+   Interface words made here in the script are translated in SQ below. */
+const SQ = {
+  "3D Animation": "Animacion 3D", "3D Modeling": "Modelim 3D", "Motion": "Motion", "Packaging": "Paketim",
+  "Branding": "Branding", "Architecture": "Arkitekturë",
+  "All": "Të gjitha", "View project": "Shiko projektin", "Drag to browse · click to open": "Tërhiqni për të shfletuar · klikoni për ta hapur",
+  "Client": "Klienti", "Year": "Viti", "Role": "Roli", "Tools": "Mjetet", "Other categories": "Kategori të tjera",
+  "Copied": "U kopjua", "Selected, press Ctrl+C": "U zgjodh, shtypni Ctrl+C", "Copy email": "Kopjo email-in",
+  "Send message": "Dërgo mesazhin", "Sending…": "Duke dërguar…",
+  "Please check the email address.": "Ju lutem kontrolloni adresën e email-it.",
+  "Please fill in the highlighted fields.": "Ju lutem plotësoni fushat e shënuara.",
+  "Couldn't send right now. Please email studiovoja@gmail.com directly.": "Mesazhi nuk u dërgua dot tani. Ju lutem shkruani direkt në studiovoja@gmail.com.",
+  "surprise me": "më befaso"
+};
+let LANG = document.documentElement.lang === "sq" ? "sq" : "en";
+const tr = s => (LANG === "sq" && SQ[s]) || s;                                   // in the current language
+const two = (en, sq) => sq && sq !== en ? `<span data-l="en">${en}</span><span data-l="sq">${sq}</span>` : en;
+const T = s => two(esc(s), SQ[s] && esc(SQ[s]));                                // both languages, for HTML that stays on the page
+const pf = (p, k) => (LANG === "sq" && p.sq && p.sq[k]) || p[k];               // a project's text in the current language
+const P = (p, k) => two(esc(p[k]), p.sq && p.sq[k] && esc(p.sq[k]));            // ...or both
+const count = n => two(`${n} ${n === 1 ? "project" : "projects"}`, `${n} ${n === 1 ? "projekt" : "projekte"}`);
+const langHooks = [];                                                           // things to redo when the language changes
+
 /* ---------- YouTube ----------
    Accepts any YouTube link (watch, youtu.be, shorts, embed, live) or a bare 11-character video ID. */
 function ytId(v) {
@@ -166,12 +191,12 @@ function rowWidths(n) {                                    // e.g. 5 -> [8,4, 4,
 }
 const card = (p, i, w) => `
   <a class="card w${w}${isHatch(p) ? " hatch" : ""}" href="#p-${esc(p.id)}" data-cat="${esc(p.category)}">
-    <div class="plate">${cardMedia(p, i)}${ytList(p).length || (p.media || []).some(m => ytId(typeof m === "string" ? m : m.src)) ? `<span class="play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></span>` : ""}<span class="view">View project</span></div>
-    <div class="cap"><h3>${esc(p.title)}</h3><span class="label">${esc(p.category)}${p.year ? " · " + esc(p.year) : ""}</span></div>
+    <div class="plate">${cardMedia(p, i)}${ytList(p).length || (p.media || []).some(m => ytId(typeof m === "string" ? m : m.src)) ? `<span class="play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></span>` : ""}<span class="view">${T("View project")}</span></div>
+    <div class="cap"><h3>${P(p, "title")}</h3><span class="label">${T(p.category)}${p.year ? " · " + esc(p.year) : ""}</span></div>
   </a>`;
 grid.innerHTML = GROUPS.map(([c, list]) => {
   const ws = rowWidths(list.length);
-  return `<div class="cat-head" data-cat="${esc(c)}"><h3>${esc(c)}</h3><span class="label">${list.length} ${list.length === 1 ? "project" : "projects"}</span></div>` +
+  return `<div class="cat-head" data-cat="${esc(c)}"><h3>${T(c)}</h3><span class="label">${count(list.length)}</span></div>` +
     list.map(([p, i], k) => card(p, i, ws[k])).join("");
 }).join("");
 
@@ -210,7 +235,7 @@ PROJECTS.forEach(p => {
 
 const cats = ["All", ...CAT_ORDER.filter(c => PROJECTS.some(p => p.category === c)),
               ...[...new Set(PROJECTS.map(p => p.category))].filter(c => !CAT_ORDER.includes(c))];
-filters.innerHTML = cats.map(c => `<button type="button" data-c="${esc(c)}" aria-pressed="${c === "All"}">${esc(c)}<span>${c === "All" ? PROJECTS.length : PROJECTS.filter(p => p.category === c).length}</span></button>`).join("");
+filters.innerHTML = cats.map(c => `<button type="button" data-c="${esc(c)}" aria-pressed="${c === "All"}">${T(c)}<span class="n">${c === "All" ? PROJECTS.length : PROJECTS.filter(p => p.category === c).length}</span></button>`).join("");
 filters.addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   location.hash = b.dataset.c === "All" ? "work" : "c-" + catSlug(b.dataset.c);
@@ -224,12 +249,12 @@ const catSlug = c => c.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/
 const catFromSlug = s => GROUPS.map(([c]) => c).find(c => catSlug(c) === s);
 // every project of the category is in its pile (first one on top); plain paper sheets fill in when there are fewer than 3
 stacks.innerHTML = GROUPS.map(([c, list]) => {
-  const real = list.map(([p, i], k) => `<div class="sheet" data-title="${esc(p.title)}">${coverTag(p, i, k)}</div>`).join("");
+  const real = list.map(([p, i], k) => `<div class="sheet" data-i="${i}">${coverTag(p, i, k)}</div>`).join("");
   const blanks = `<div class="sheet blank"></div>`.repeat(Math.max(0, 3 - list.length));
   const many = list.length > 1;
   return `<a class="stack" href="#c-${catSlug(c)}" data-cat="${esc(c)}" draggable="false"><div class="pile">${real}${blanks}` +
-    `<span class="view">${many ? "Drag to browse · click to open" : "Open " + esc(c)}</span></div>` +
-    `<div class="cap"><h3>${esc(c)}</h3><span class="label">${list.length} ${list.length === 1 ? "project" : "projects"}</span>` +
+    `<span class="view">${many ? T("Drag to browse · click to open") : two("Open " + esc(c), "Hap " + esc(tr(c)))}</span></div>` +
+    `<div class="cap"><h3>${T(c)}</h3><span class="label">${count(list.length)}</span>` +
     `<p class="now"><b></b>${many ? `<span></span>` : ""}</p></div></a>`;
 }).join("");
 
@@ -245,7 +270,7 @@ stacks.querySelectorAll(".stack").forEach(stack => {
       if (k < 4) el.querySelectorAll("img[loading]").forEach(im => im.removeAttribute("loading"));   // load the next ones ahead, so a swipe never shows a blank card
     });
     blanks.forEach((el, k) => { el.className = `sheet blank s${n + k + 1}`; });
-    now.textContent = order[0].dataset.title;
+    now.innerHTML = P(PROJECTS[order[0].dataset.i], "title");
     if (count) count.textContent = `${order[0]._k + 1} / ${n}`;
   };
   order.forEach((el, k) => { el._k = k; });
@@ -370,11 +395,11 @@ let lastScroll = 0, currentId = null;
 function openProject(id) {
   const i = PROJECTS.findIndex(p => p.id === id); if (i < 0) return closeProject(false);
   const p = PROJECTS[i]; currentId = id;
-  document.getElementById("p-cat").textContent = p.category;
-  document.getElementById("p-title").textContent = p.title;
-  document.getElementById("p-desc").textContent = p.description;
-  document.getElementById("p-specs").innerHTML = [["Client", p.client], ["Year", p.year], ["Role", p.role], ["Tools", p.tools]]
-    .filter(([, v]) => v).map(([k, v]) => `<div><span class="label">${k}</span><b>${esc(v)}</b></div>`).join("");
+  document.getElementById("p-cat").innerHTML = T(p.category);
+  document.getElementById("p-title").innerHTML = P(p, "title");
+  document.getElementById("p-desc").innerHTML = P(p, "description");
+  document.getElementById("p-specs").innerHTML = [["Client", "client"], ["Year", "year"], ["Role", "role"], ["Tools", "tools"]]
+    .filter(([, f]) => p[f]).map(([k, f]) => `<div><span class="label">${T(k)}</span><b>${P(p, f)}</b></div>`).join("");
   const gal = document.getElementById("p-gallery");
   let html = "";
   if (p.vimeo) html += `<div class="g embed"><iframe src="https://player.vimeo.com/video/${esc(p.vimeo)}?dnt=1" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="${esc(p.title)}"></iframe></div>`;
@@ -397,14 +422,16 @@ function openProject(id) {
   });
   // more projects: previous / next in the same category, plus a jump to each other category
   const same = PROJECTS.filter(q => q.category === p.category), k = same.indexOf(p);
-  const step = (q, dir) => `<a class="p-step ${dir}" href="#p-${esc(q.id)}"><span class="label">${dir === "prev" ? "← Previous" : "Next"} in ${esc(p.category)}${dir === "next" ? " →" : ""}</span><b>${esc(q.title)}</b></a>`;
+  const c = esc(p.category), cSq = esc(SQ[p.category] || p.category);
+  const step = (q, dir) => `<a class="p-step ${dir}" href="#p-${esc(q.id)}"><span class="label">${dir === "prev"
+    ? two(`← Previous in ${c}`, `← I mëparshmi në ${cSq}`) : two(`Next in ${c} →`, `Tjetri në ${cSq} →`)}</span><b>${P(q, "title")}</b></a>`;
   const steps = same.length < 2 ? "" : same.length === 2 ? step(same[(k + 1) % 2], "next")
     : step(same[(k - 1 + same.length) % same.length], "prev") + step(same[(k + 1) % same.length], "next");
   const cats = CAT_ORDER.filter(c => c !== p.category && PROJECTS.some(q => q.category === c));
   document.getElementById("p-nav").innerHTML = (steps ? `<div class="p-steps${same.length === 2 ? " one" : ""}">${steps}</div>` : "") +
-    (cats.length ? `<div class="p-cats"><span class="label">Other categories</span><div>${cats.map(c =>
-      `<a class="btn ghost" href="#p-${esc(PROJECTS.find(q => q.category === c).id)}">${esc(c)} →</a>`).join("")}</div></div>` : "");
-  document.title = `${p.title} · Voja Studio`;
+    (cats.length ? `<div class="p-cats"><span class="label">${T("Other categories")}</span><div>${cats.map(c =>
+      `<a class="btn ghost" href="#p-${esc(PROJECTS.find(q => q.category === c).id)}">${T(c)} →</a>`).join("")}</div></div>` : "");
+  document.title = `${pf(p, "title")} · Voja Studio`;
   const fresh = ov.hidden || closing;   // reopened mid-close: swipe back in from where it is
   if (ov.hidden) lastScroll = scrollY;
   closing = false;
@@ -417,7 +444,7 @@ function closeProject(clearHash = true) {
   if (ov.hidden || closing) return;
   const finish = () => {
     ov.hidden = true; document.body.style.overflow = ""; currentId = null; closing = false;
-    document.title = DEFAULT_TITLE;
+    document.title = defaultTitle();
     ov.querySelectorAll("video").forEach(v => v.pause());
     if (clearHash && location.hash.startsWith("#p-")) history.replaceState(null, "", activeCat ? "#c-" + catSlug(activeCat) : "#work");
     scrollTo(0, lastScroll);
@@ -464,6 +491,21 @@ function swipeOut(done, t = ov) {
       () => { if (t !== ov) done(); });   // a project cancelled mid-close was opened again, so it stays open
 }
 const DEFAULT_TITLE = document.title;
+const defaultTitle = () => LANG === "sq" ? "Voja Studio · Studio dizajni në Prishtinë" : DEFAULT_TITLE;
+
+/* ---------- the EN | SQ switch ---------- */
+const langBtns = document.querySelectorAll(".lang button");
+function setLang(l) {
+  LANG = l === "sq" ? "sq" : "en";
+  document.documentElement.lang = LANG;
+  try { localStorage.setItem("voja-lang", LANG); } catch (_) {}
+  langBtns.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lang === LANG)));
+  const p = currentId && PROJECTS.find(q => q.id === currentId);
+  document.title = p ? `${pf(p, "title")} · Voja Studio` : defaultTitle();
+  langHooks.forEach(f => f());
+}
+langBtns.forEach(b => b.addEventListener("click", () => setLang(b.dataset.lang)));
+setLang(LANG);
 function route() {
   const h = location.hash.slice(1);
   if (h.startsWith("p-")) return openProject(h.slice(2));
@@ -660,7 +702,7 @@ function crackShape(k, W) {                               // k: how far the crac
     const el = document.createElement("div"); el.className = "yolk-splat";
     el.innerHTML = '<div class="goo"><div class="puddle" role="button" aria-label="Open a random project"></div>' + "<i></i>".repeat(4) + '</div>' +
       '<svg class="ylabel" viewBox="0 0 80 48" aria-hidden="true"><path id="yl' + (++yolkN) + '" d="M15 30 Q42 15 72 25" fill="none"/>' +
-      '<text><textPath href="#yl' + yolkN + '" startOffset="50%" text-anchor="middle">surprise me</textPath></text></svg>';
+      '<text><textPath href="#yl' + yolkN + '" startOffset="50%" text-anchor="middle">' + esc(tr("surprise me")) + '</textPath></text></svg>';
     el.style.left = (sx - 120) + "px"; el.style.top = (sy - 120) + "px";
     document.body.appendChild(el);
     const FALL = Math.round(Math.min(820, 380 + Math.hypot(dx, dy) * 0.55));
@@ -838,9 +880,9 @@ addEventListener("keydown", e => { if (e.key === "Escape") setMenu(false); });
 /* ---------- copy email ---------- */
 document.getElementById("copy").addEventListener("click", async e => {
   const m = document.getElementById("mail"), b = e.currentTarget;
-  try { await navigator.clipboard.writeText(m.textContent.trim()); b.textContent = "Copied"; }
-  catch { const r = document.createRange(); r.selectNodeContents(m); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = "Selected, press Ctrl+C"; }
-  setTimeout(() => b.textContent = "Copy email", 2200);
+  try { await navigator.clipboard.writeText(m.textContent.trim()); b.innerHTML = T("Copied"); }
+  catch { const r = document.createRange(); r.selectNodeContents(m); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.innerHTML = T("Selected, press Ctrl+C"); }
+  setTimeout(() => b.innerHTML = T("Copy email"), 2200);
 });
 
 /* ---------- contact form, sends to studiovoja@gmail.com ---------- */
@@ -856,9 +898,9 @@ const WEB3FORMS_KEY = "f2fbc173-bcbc-4e6f-a430-eadae725cab1";
     if (f._honey.value) return;
     const bad = [...f.querySelectorAll("[required]")].filter(el => !el.checkValidity());
     bad.forEach(el => el.classList.add("bad"));
-    if (bad.length) { say(bad[0].name === "email" ? "Please check the email address." : "Please fill in the highlighted fields.", true); bad[0].focus(); return; }
+    if (bad.length) { say(tr(bad[0].name === "email" ? "Please check the email address." : "Please fill in the highlighted fields."), true); bad[0].focus(); return; }
     const d = Object.fromEntries(new FormData(f));
-    btn.disabled = true; btn.textContent = "Sending…"; say("");
+    btn.disabled = true; btn.innerHTML = T("Sending…"); say("");
     try {
       if (WEB3FORMS_KEY) {
         // Web3Forms: CORS-friendly, replies with JSON so we know it really arrived
@@ -879,12 +921,12 @@ const WEB3FORMS_KEY = "f2fbc173-bcbc-4e6f-a430-eadae725cab1";
       }
       const first = d.name.trim().split(/\s+/)[0];
       f.classList.add("sent");
-      f.innerHTML = '<div class="done" tabindex="-1"><h3>Thanks, <em></em>. Message sent.</h3><p>I usually reply within a day or two.</p></div>';
-      f.querySelector("em").textContent = first;
+      f.innerHTML = '<div class="done" tabindex="-1"><h3>' + two('Thanks, <em></em>. Message sent.', 'Faleminderit, <em></em>. Mesazhi u dërgua.') + '</h3><p>' + two('I usually reply within a day or two.', 'Zakonisht përgjigjem brenda një a dy ditësh.') + '</p></div>';
+      f.querySelectorAll("em").forEach(el => { el.textContent = first; });
       f.querySelector(".done").focus();
     } catch {
-      btn.disabled = false; btn.textContent = "Send message";
-      say("Couldn't send right now. Please email studiovoja@gmail.com directly.", true);
+      btn.disabled = false; btn.innerHTML = T("Send message");
+      say(tr("Couldn't send right now. Please email studiovoja@gmail.com directly."), true);
     }
   });
 })();
