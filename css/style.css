@@ -106,14 +106,19 @@ section{scroll-margin-top:80px}
 .stacks{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:clamp(36px,4vw,56px) clamp(20px,2.4vw,36px); padding-top:14px}
 .stacks[hidden]{display:none}
 .stack{text-decoration:none; color:inherit; display:flex; flex-direction:column; gap:20px; min-width:0}
-.stack .pile{position:relative; aspect-ratio:4/3}
+.stack .pile{position:relative; aspect-ratio:4/3; touch-action:pan-y; user-select:none; -webkit-user-select:none; cursor:grab}
+.stack .pile:active{cursor:grabbing}
 .stack .sheet{position:absolute; inset:0; border-radius:18px; overflow:hidden; background:var(--sheet);
-  box-shadow:0 12px 30px -12px rgba(50,50,50,.28); transition:transform .55s cubic-bezier(.2,.7,.1,1)}
+  box-shadow:0 12px 30px -12px rgba(50,50,50,.28); transition:transform .55s cubic-bezier(.2,.7,.1,1), opacity .4s}
+.stack .sheet img, .stack .sheet video{-webkit-user-drag:none; pointer-events:none}
+.stack .sheet.drag{transition:none}                                   /* follows the finger exactly */
+.stack .sheet.fly{transition:transform .26s cubic-bezier(.5,0,.9,.6)}  /* thrown off the pile */
 .stack .sheet img, .stack .sheet video, .stack .sheet canvas{width:100%; height:100%; object-fit:cover; display:block}
 .stack .sheet.blank{background:#E2E2D6; border:1px solid var(--rule)}
 .stack .s1{z-index:3}
 .stack .s2{z-index:2; transform:translate(-2.5%,-4%) rotate(-3deg)}
 .stack .s3{z-index:1; transform:translate(3%,-6.5%) rotate(3.5deg)}
+.stack .s4{z-index:0; opacity:0; transform:translate(3%,-6.5%) rotate(3.5deg)}   /* further down the pile, out of sight */
 .stack:hover .s1, .stack:focus-visible .s1{transform:translateY(-6px) rotate(-1deg)}
 .stack:hover .s2, .stack:focus-visible .s2{transform:translate(-9%,-6%) rotate(-7deg)}
 .stack:hover .s3, .stack:focus-visible .s3{transform:translate(9%,-9%) rotate(7deg)}
@@ -123,6 +128,10 @@ section{scroll-margin-top:80px}
 .stack .cap{display:flex; justify-content:space-between; gap:12px; align-items:baseline}
 .stack h3{font:400 clamp(22px,2.2vw,28px)/1.1 var(--display); letter-spacing:-.02em; margin:0}
 .stack .cap .label{white-space:nowrap; letter-spacing:.08em}
+.stack .cap{flex-wrap:wrap; row-gap:4px}
+.stack .now{flex-basis:100%; margin:0; display:flex; justify-content:space-between; gap:12px; font-size:14px; color:var(--muted)}
+.stack .now b{font-weight:500; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.stack .now span{font-variant-numeric:tabular-nums; white-space:nowrap}
 .cat-back{display:inline-block; margin-bottom:22px; font:600 14px/1 var(--body); color:var(--ink); text-decoration:none;
   border:1.5px solid var(--ink); border-radius:999px; padding:10px 16px; transition:background .2s, color .2s}
 .cat-back:hover{background:var(--ink); color:var(--parchment)}

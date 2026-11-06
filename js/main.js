@@ -222,13 +222,80 @@ filters.addEventListener("click", e => {
 const stacks = document.getElementById("stacks"), catView = document.getElementById("cat-view");
 const catSlug = c => c.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const catFromSlug = s => GROUPS.map(([c]) => c).find(c => catSlug(c) === s);
+// every project of the category is in its pile (first one on top); plain paper sheets fill in when there are fewer than 3
 stacks.innerHTML = GROUPS.map(([c, list]) => {
-  const top = list.slice(0, 3);                           // the first three covers, first one on top
-  const sheets = [0, 1, 2].map(k => top[k] ? `<div class="sheet s${k + 1}">${coverTag(top[k][0], top[k][1], k)}</div>`
-                                           : `<div class="sheet s${k + 1} blank"></div>`).reverse().join("");
-  return `<a class="stack" href="#c-${catSlug(c)}" data-cat="${esc(c)}"><div class="pile">${sheets}<span class="view">Open ${esc(c)}</span></div>` +
-    `<div class="cap"><h3>${esc(c)}</h3><span class="label">${list.length} ${list.length === 1 ? "project" : "projects"}</span></div></a>`;
+  const real = list.map(([p, i], k) => `<div class="sheet" data-title="${esc(p.title)}">${coverTag(p, i, k)}</div>`).join("");
+  const blanks = `<div class="sheet blank"></div>`.repeat(Math.max(0, 3 - list.length));
+  const many = list.length > 1;
+  return `<a class="stack" href="#c-${catSlug(c)}" data-cat="${esc(c)}" draggable="false"><div class="pile">${real}${blanks}` +
+    `<span class="view">${many ? "Drag to browse · click to open" : "Open " + esc(c)}</span></div>` +
+    `<div class="cap"><h3>${esc(c)}</h3><span class="label">${list.length} ${list.length === 1 ? "project" : "projects"}</span>` +
+    `<p class="now"><b></b>${many ? `<span></span>` : ""}</p></div></a>`;
 }).join("");
+
+/* ---------- swipe through a stack: drag the top cover left or right and it flies off and tucks in at the back ---------- */
+stacks.querySelectorAll(".stack").forEach(stack => {
+  const pile = stack.querySelector(".pile"), now = stack.querySelector(".now b"), count = stack.querySelector(".now span");
+  let order = [...pile.querySelectorAll(".sheet:not(.blank)")];
+  const blanks = [...pile.querySelectorAll(".sheet.blank")];
+  const n = order.length;
+  const place = () => {                                   // s1 = top, s2 / s3 = the two peeking behind, s4 = hidden further down
+    order.forEach((el, k) => {
+      el.classList.remove("s1", "s2", "s3", "s4"); el.classList.add("s" + Math.min(k + 1, 4));
+      if (k < 4) el.querySelectorAll("img[loading]").forEach(im => im.removeAttribute("loading"));   // load the next ones ahead, so a swipe never shows a blank card
+    });
+    blanks.forEach((el, k) => { el.className = `sheet blank s${n + k + 1}`; });
+    now.textContent = order[0].dataset.title;
+    if (count) count.textContent = `${order[0]._k + 1} / ${n}`;
+  };
+  order.forEach((el, k) => { el._k = k; });
+  place();
+  let busy = false;
+  const next = dir => {                                   // throw the top cover off to one side, then slide it in at the back
+    if (busy) return; busy = true;
+    const top = order[0];
+    top.classList.remove("drag"); top.classList.add("fly");
+    top.style.transform = `translateX(${dir * 125}%) rotate(${dir * 16}deg)`;
+    setTimeout(() => {
+      top.classList.remove("fly"); top.style.transform = "";
+      order = n > 1 ? [...order.slice(1), top] : order;
+      place(); busy = false;
+    }, 260);
+  };
+  let x0 = 0, y0 = 0, dx = 0, id = null, dragging = false, moved = false, t0 = 0;
+  pile.addEventListener("pointerdown", e => {
+    if (e.button) return;
+    id = e.pointerId; x0 = e.clientX; y0 = e.clientY; dx = 0; dragging = false; moved = false; t0 = performance.now();
+  });
+  pile.addEventListener("pointermove", e => {
+    if (e.pointerId !== id || busy) return;
+    if (e.pointerType === "mouse" && !(e.buttons & 1)) { id = null; return; }   // button was released outside
+    const ddx = e.clientX - x0, ddy = e.clientY - y0;
+    if (!dragging) {
+      if (Math.abs(ddy) > 10 && Math.abs(ddy) > Math.abs(ddx)) { id = null; return; }   // scrolling the page: let it go
+      if (Math.abs(ddx) < 8) return;
+      dragging = moved = true; pile.setPointerCapture(id); order[0].classList.add("drag");
+    }
+    dx = ddx;
+    order[0].style.transform = `translateX(${dx}px) rotate(${dx * 0.04}deg)`;
+  });
+  const end = e => {
+    if (e.pointerId !== id) return;
+    id = null;
+    if (!dragging) return;
+    dragging = false;
+    const fast = Math.abs(dx) / Math.max(1, performance.now() - t0) > 0.6;   // a quick flick counts too
+    if (Math.abs(dx) > pile.clientWidth * 0.22 || (fast && Math.abs(dx) > 30)) next(Math.sign(dx));
+    else { order[0].classList.remove("drag"); order[0].style.transform = ""; }   // not far enough: spring back
+  };
+  pile.addEventListener("pointerup", end);
+  pile.addEventListener("pointercancel", end);
+  stack.addEventListener("click", e => { if (moved) { e.preventDefault(); moved = false; } });   // a drag is not a click
+  stack.addEventListener("dragstart", e => e.preventDefault());
+  stack.addEventListener("keydown", e => {                // keyboard: left / right arrows browse the pile
+    if (e.key === "ArrowLeft" || e.key === "ArrowRight") { e.preventDefault(); next(e.key === "ArrowLeft" ? -1 : 1); }
+  });
+});
 let activeCat = null;
 function showCat(c, animate = booted) {
   if (c === activeCat) return;
