@@ -250,22 +250,40 @@ stacks.querySelectorAll(".stack").forEach(stack => {
   };
   order.forEach((el, k) => { el._k = k; });
   place();
-  let busy = false;
-  const next = dir => {                                   // throw the top cover off to one side, then slide it in at the back
-    if (busy) return; busy = true;
-    const top = order[0];
-    top.classList.remove("drag"); top.classList.add("fly");
-    top.style.transform = `translateX(${dir * 125}%) rotate(${dir * 16}deg)`;
-    setTimeout(() => {
-      top.classList.remove("fly"); top.style.transform = "";
-      order = n > 1 ? [...order.slice(1), top] : order;
-      place(); busy = false;
-    }, 260);
+  // while dragging, the cover follows the pointer (drawn once per screen frame) and the card under it rises to take its place
+  const dragPose = d => `translate(${d}px, ${-Math.abs(d) * 0.04}px) rotate(${d * 0.05}deg)`;
+  const risePose = p => `translate(${-2.5 * (1 - p)}%, ${-4 * (1 - p)}%) rotate(${-3 * (1 - p)}deg)`;   // s2 -> s1
+  let frame = 0;
+  const draw = () => {
+    frame = 0;
+    order[0].style.transform = dragPose(dx);
+    if (n > 1) order[1].style.transform = risePose(Math.min(1, Math.abs(dx) / (pile.clientWidth * 0.6)));
   };
-  let x0 = 0, y0 = 0, dx = 0, id = null, dragging = false, moved = false, t0 = 0;
+  const release = () => { cancelAnimationFrame(frame); frame = 0; order.slice(0, 2).forEach(el => el.classList.remove("drag")); };
+  // the pile grows and stays in front of the other categories while it's being swiped, until the thrown card is back in
+  let liftT = 0;
+  const lift = ms => { clearTimeout(liftT); stack.classList.add("lift"); if (ms) liftT = setTimeout(() => stack.classList.remove("lift"), ms); };
+  let busy = false;
+  const next = dir => {                                   // throw the top cover off to one side; the next one comes up at the same time
+    if (busy) return; busy = true;
+    lift(1000);
+    release();
+    const top = order[0];
+    order = n > 1 ? [...order.slice(1), top] : order;
+    top.classList.add("fly");
+    top.offsetWidth;                                      // start the throw from wherever the finger left it
+    top.style.transform = `translate(${dir * pile.clientWidth * 1.25}px, -4%) rotate(${dir * 18}deg)`;
+    if (n > 1) order[0].style.transform = "";
+    place();                                              // new top glides into place; the thrown card's slot is now at the back
+    setTimeout(() => {                                    // then the thrown card slides back in under the pile
+      top.classList.remove("fly"); top.style.transform = "";
+      busy = false;
+    }, 340);
+  };
+  let x0 = 0, y0 = 0, dx = 0, id = null, dragging = false, moved = false, vx = 0, lastX = 0, lastT = 0;
   pile.addEventListener("pointerdown", e => {
-    if (e.button) return;
-    id = e.pointerId; x0 = e.clientX; y0 = e.clientY; dx = 0; dragging = false; moved = false; t0 = performance.now();
+    if (e.button || busy) return;
+    id = e.pointerId; x0 = lastX = e.clientX; y0 = e.clientY; dx = 0; vx = 0; dragging = false; moved = false; lastT = performance.now();
   });
   pile.addEventListener("pointermove", e => {
     if (e.pointerId !== id || busy) return;
@@ -273,20 +291,26 @@ stacks.querySelectorAll(".stack").forEach(stack => {
     const ddx = e.clientX - x0, ddy = e.clientY - y0;
     if (!dragging) {
       if (Math.abs(ddy) > 10 && Math.abs(ddy) > Math.abs(ddx)) { id = null; return; }   // scrolling the page: let it go
-      if (Math.abs(ddx) < 8) return;
-      dragging = moved = true; pile.setPointerCapture(id); order[0].classList.add("drag");
+      if (Math.abs(ddx) < 6) return;
+      dragging = moved = true; try { pile.setPointerCapture(id); } catch (_) {}
+      order[0].classList.add("drag");                     // the card underneath keeps its easing, so it glides rather than snaps
+      lift();
     }
-    dx = ddx;
-    order[0].style.transform = `translateX(${dx}px) rotate(${dx * 0.04}deg)`;
+    const t = performance.now();                          // speed over the last moments, for flicks
+    if (t > lastT) { vx = vx * 0.6 + ((e.clientX - lastX) / (t - lastT)) * 0.4; lastX = e.clientX; lastT = t; }
+    dx = ddx / (pile.getBoundingClientRect().width / pile.offsetWidth || 1);   // the pile is scaled up: keep the card under the finger
+    if (!frame) frame = requestAnimationFrame(draw);
   });
   const end = e => {
     if (e.pointerId !== id) return;
     id = null;
     if (!dragging) return;
     dragging = false;
-    const fast = Math.abs(dx) / Math.max(1, performance.now() - t0) > 0.6;   // a quick flick counts too
-    if (Math.abs(dx) > pile.clientWidth * 0.22 || (fast && Math.abs(dx) > 30)) next(Math.sign(dx));
-    else { order[0].classList.remove("drag"); order[0].style.transform = ""; }   // not far enough: spring back
+    const flick = Math.abs(vx) > 0.5 && Math.sign(vx) === Math.sign(dx);
+    if (Math.abs(dx) > pile.clientWidth * 0.25 || (flick && Math.abs(dx) > 24)) return next(Math.sign(dx));
+    release();                                            // not far enough: both cards spring back
+    order[0].style.transform = ""; if (n > 1) order[1].style.transform = "";
+    lift(550);
   };
   pile.addEventListener("pointerup", end);
   pile.addEventListener("pointercancel", end);

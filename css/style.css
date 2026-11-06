@@ -102,17 +102,28 @@ section{scroll-margin-top:80px}
 .card:hover .view, .card:focus-visible .view{opacity:1; transform:none}
 
 /* ---------- work stacks: one pile of covers per category; hover fans the pile open ---------- */
-.work{overflow-x:clip}   /* the tilted sheets never cause sideways scrolling */
+main{overflow-x:clip}   /* tilted and thrown stack cards never cause sideways scrolling (clipped at the screen edge, not the section) */
 .stacks{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:clamp(36px,4vw,56px) clamp(20px,2.4vw,36px); padding-top:14px}
 .stacks[hidden]{display:none}
-.stack{text-decoration:none; color:inherit; display:flex; flex-direction:column; gap:20px; min-width:0}
-.stack .pile{position:relative; aspect-ratio:4/3; touch-action:pan-y; user-select:none; -webkit-user-select:none; cursor:grab}
+.stack{text-decoration:none; color:inherit; display:flex; flex-direction:column; gap:20px; min-width:0; padding-inline:7%}   /* a little smaller than the column */
+.stack .pile{position:relative; z-index:1; aspect-ratio:4/3; touch-action:pan-y; user-select:none; -webkit-user-select:none; cursor:grab; transition:transform .45s cubic-bezier(.2,.7,.1,1)}
+/* hovered or being swiped: the pile grows and comes in front of the other categories, so thrown cards fly over them */
+.stack:hover .pile, .stack.lift .pile{transform:scale(1.1); z-index:10}
 .stack .pile:active{cursor:grabbing}
 .stack .sheet{position:absolute; inset:0; border-radius:18px; overflow:hidden; background:var(--sheet);
   box-shadow:0 12px 30px -12px rgba(50,50,50,.28); transition:transform .55s cubic-bezier(.2,.7,.1,1), opacity .4s}
 .stack .sheet img, .stack .sheet video{-webkit-user-drag:none; pointer-events:none}
+.stack .s1, .stack .s2{will-change:transform}
 .stack .sheet.drag{transition:none}                                   /* follows the finger exactly */
-.stack .sheet.fly{transition:transform .26s cubic-bezier(.5,0,.9,.6)}  /* thrown off the pile */
+.stack .sheet.fly{z-index:5; opacity:1; transition:transform .34s cubic-bezier(.25,.6,.35,1)}  /* thrown off the pile, stays on top until it's gone */
+/* the stacks keep their motion even when the computer asks for reduced motion (like the egg and the seal) */
+@media (prefers-reduced-motion:reduce){
+  .stack .sheet{transition:transform .55s cubic-bezier(.2,.7,.1,1), opacity .4s!important}
+  .stack .sheet.drag{transition:none!important}
+  .stack .sheet.fly{transition:transform .34s cubic-bezier(.25,.6,.35,1)!important}
+  .stack .view{transition:.3s!important}
+  .stack .pile{transition:transform .45s cubic-bezier(.2,.7,.1,1)!important}
+}
 .stack .sheet img, .stack .sheet video, .stack .sheet canvas{width:100%; height:100%; object-fit:cover; display:block}
 .stack .sheet.blank{background:#E2E2D6; border:1px solid var(--rule)}
 .stack .s1{z-index:3}
