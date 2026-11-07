@@ -345,6 +345,11 @@ stacks.querySelectorAll(".stack").forEach(stack => {
     if (e.key === "ArrowLeft" || e.key === "ArrowRight") { e.preventDefault(); next(e.key === "ArrowLeft" ? -1 : 1); }
   });
 });
+// phones (no hover): a stack opens its deck with the same front-first ripple when it reaches the middle of the screen
+if (matchMedia("(hover: none)").matches && "IntersectionObserver" in window) {
+  const io = new IntersectionObserver(es => es.forEach(e => e.target.classList.toggle("spread", e.isIntersecting)), { rootMargin: "-30% 0px -30% 0px" });
+  stacks.querySelectorAll(".stack").forEach(s => io.observe(s));
+}
 let activeCat = null;
 function showCat(c, animate = booted) {
   if (c === activeCat) return;

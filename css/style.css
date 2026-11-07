@@ -132,9 +132,10 @@ main{overflow-x:clip}   /* tilted and thrown stack cards never cause sideways sc
 .stack .s2{z-index:2; transform:translateY(-8.5%) scale(.93)}   /* a neat deck: the cards behind sit straight, centred, peeking out above */
 .stack .s3{z-index:1; transform:translateY(-17%) scale(.86)}
 .stack .s4{z-index:0; opacity:0; transform:translateY(-17%) scale(.86)}   /* further down the pile, out of sight */
-.stack:hover .s1, .stack:focus-visible .s1{transform:translateY(-8px)}   /* hover: the deck spreads a little further, still in line */
-.stack:hover .s2, .stack:focus-visible .s2{transform:translateY(-13.5%) scale(.93)}
-.stack:hover .s3, .stack:focus-visible .s3{transform:translateY(-26%) scale(.86)}
+.stack:hover .s1, .stack:focus-visible .s1, .stack.spread .s1{transform:translateY(-8px)}   /* hover: the deck spreads a little further, still in line */
+.stack:hover .s2, .stack:focus-visible .s2, .stack.spread .s2{transform:translateY(-13.5%) scale(.93)}
+.stack:hover .s3, .stack:focus-visible .s3, .stack.spread .s3{transform:translateY(-26%) scale(.86)}
+/* phones have no hover: the deck opens like this when the stack scrolls into the middle of the screen (.spread, set in main.js) */
 /* the deck always moves as a ripple from the front card: the ones behind follow a beat later */
 .stack .s2{transition-delay:.1s} .stack .s3, .stack .s4{transition-delay:.2s}
 .stack .sheet.drag, .stack .sheet.fly{transition-delay:0s}
