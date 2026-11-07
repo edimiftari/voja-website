@@ -722,6 +722,37 @@ function setLang(l) {
   document.title = p ? `${pf(p, "title")} · Voja Studio` : defaultTitle();
   langHooks.forEach(f => f());
 }
+// tap a side, or drag / swipe the knob across: it follows the finger and snaps to the nearer side when let go
+(() => {
+  const sw = document.querySelector(".lang"), knob = sw && sw.querySelector(".lang-knob"); if (!knob) return;
+  const MAXX = 36;                                       // knob travel, matches the CSS
+  let id = null, x0 = 0, from = 0, x = 0, moved = false, v = 0, lx = 0, lt = 0;
+  sw.addEventListener("pointerdown", e => {
+    if (e.button) return;
+    id = e.pointerId; x0 = lx = e.clientX; lt = performance.now(); from = x = LANG === "sq" ? MAXX : 0; moved = false; v = 0;
+  });
+  sw.addEventListener("pointermove", e => {
+    if (e.pointerId !== id) return;
+    if (e.pointerType === "mouse" && !(e.buttons & 1)) { id = null; return; }   // button let go outside the switch
+    const dx = e.clientX - x0;
+    if (!moved) { if (Math.abs(dx) < 4) return; moved = true; try { sw.setPointerCapture(id); } catch (_) {} knob.style.transition = "none"; }
+    const t = performance.now(); if (t > lt) { v = (e.clientX - lx) / (t - lt); lx = e.clientX; lt = t; }
+    x = Math.max(0, Math.min(MAXX, from + dx));
+    knob.style.transform = `translateX(${x}px)`;
+  });
+  const end = e => {
+    if (e.pointerId !== id) return;
+    id = null;
+    if (!moved) return;                                  // a plain tap: the button's own click does it
+    const to = Math.abs(v) > 0.4 ? (v > 0 ? "sq" : "en") : (x > MAXX / 2 ? "sq" : "en");   // a flick decides too
+    knob.style.transition = ""; knob.style.transform = `translateX(${to === "sq" ? MAXX : 0}px)`;   // glide on from where it was let go
+    setLang(to);
+    setTimeout(() => { knob.style.transform = ""; }, 400);
+  };
+  sw.addEventListener("pointerup", end);
+  sw.addEventListener("pointercancel", end);
+  sw.addEventListener("click", e => { if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; } }, true);   // a drag is not a tap
+})();
 langBtns.forEach(b => b.addEventListener("click", () => setLang(b.dataset.lang)));
 setLang(LANG);
 function route() {

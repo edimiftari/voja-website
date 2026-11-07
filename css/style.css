@@ -292,10 +292,15 @@ header.top .menu-btn{color:#EBEBDF}
 /* language switch (EN | SQ): logo on the left, then the menu (or the phone menu button) and the switch on the right */
 header.top .logo{margin-right:auto}
 nav.links{order:1} .lang{order:2} .menu-btn{order:3}
-.lang{display:flex; align-items:center; gap:2px; padding:3px; border:1.5px solid rgba(235,235,223,.28); border-radius:999px}
-.lang button{font:600 12px/1 var(--body); letter-spacing:.06em; color:rgba(235,235,223,.6); background:none; border:0; border-radius:999px; padding:6px 9px; cursor:pointer; transition:background .2s, color .2s}
+/* a little toggle: the light knob sits behind the chosen language; tap a side, or drag / swipe the knob across */
+.lang{position:relative; display:flex; align-items:center; gap:2px; padding:3px; border:1.5px solid rgba(235,235,223,.28); border-radius:999px; touch-action:pan-y; user-select:none; -webkit-user-select:none; cursor:grab}
+.lang:active{cursor:grabbing}
+.lang-knob{position:absolute; top:3px; bottom:3px; left:3px; width:34px; border-radius:999px; background:#EBEBDF; pointer-events:none;
+  transition:transform .35s cubic-bezier(.3,1.35,.5,1)}   /* a small overshoot, like a real switch */
+html[lang="sq"] .lang-knob{transform:translateX(36px)}
+.lang button{position:relative; z-index:1; width:34px; padding:6px 0; text-align:center; font:600 12px/1 var(--body); letter-spacing:.06em; color:rgba(235,235,223,.6); background:none; border:0; border-radius:999px; cursor:inherit; transition:color .2s}
 .lang button:hover{color:#EBEBDF}
-.lang button[aria-pressed="true"]{background:#EBEBDF; color:#323232}
+html:not([lang="sq"]) .lang [data-lang="en"], html[lang="sq"] .lang [data-lang="sq"]{color:#323232}
 /* only the chosen language shows (both are in the page, side by side) */
 html[lang="sq"] [data-l="en"], html:not([lang="sq"]) [data-l="sq"]{display:none!important}
 .hero{background:#323232; color:#EBEBDF}
@@ -608,3 +613,4 @@ html, body{overscroll-behavior-y:none}
 .gallery .g.is-full.zoomed{cursor:grab}
 .gallery .g.is-full.zoomed:active{cursor:grabbing}
 .gallery .g.compare.zoomed .cmp-range{pointer-events:none}   /* zoomed in: drag to look around; the divider is still dragged by its handle */
+@media (prefers-reduced-motion:reduce){ .lang-knob{transition:transform .35s cubic-bezier(.3,1.35,.5,1)!important} }   /* the switch keeps its slide */
