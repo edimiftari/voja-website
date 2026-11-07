@@ -1072,7 +1072,12 @@ if (intro) {
 /* ---------- init ---------- */
 let rt; addEventListener("resize", () => {
   clearTimeout(rt);
-  rt = setTimeout(() => { if (innerWidth > 600) setMenu(false); paintAll(); if (currentId && !ov.querySelector(".real,.embed")) openProject(currentId); }, 150);
+  rt = setTimeout(() => {
+    if (innerWidth > 600) setMenu(false); paintAll();
+    // an open project only redraws its placeholder art in place: rebuilding the gallery would throw a piece out of full screen
+    const p = currentId && PROJECTS.find(q => q.id === currentId);
+    if (p) gallery.querySelectorAll("canvas").forEach((cv, k) => paint(cv, p.placeholder, cv.dataset.v ? +cv.dataset.v : k));
+  }, 150);
 });
 (document.fonts?.ready || Promise.resolve()).then(() => { paintAll(); if (!booted) route(); booted = true; });
 paintAll(); route();
