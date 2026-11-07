@@ -552,7 +552,7 @@ function enterFull(g) {
   try { const r = req.call(g); if (r && r.then) r.then(on, fake); else on(); } catch (_) { fake(); }
 }
 function tidyFull(g) {
-  g.classList.remove("is-full", "fake-full"); setFsBtn(g, false);
+  g.classList.remove("is-full", "fake-full"); setFsBtn(g, false); zReset(g);
   try { screen.orientation.unlock(); } catch (_) {}
 }
 function exitFull() {
@@ -570,6 +570,93 @@ gallery.addEventListener("click", e => {
   const img = e.target.closest(".g.real img");          // tapping an image opens it full screen too
   if (img && !img.closest(".is-full")) enterFull(img.closest(".g"));
 });
+
+/* ---------- zoom inside full screen ----------
+   pinch (touch), wheel or trackpad pinch (computers), double-tap / double-click to jump in and back out; drag to look around.
+   Only the pictures move: on a before/after slider the wireframe and render zoom together, so they stay lined up, and the
+   divider stays where it is (drag its handle to move it while zoomed). */
+const ZMAX = 5, zoom = new WeakMap();
+const zLayers = g => [...g.querySelectorAll(g.classList.contains("compare") ? ".cmp-before > *, .cmp-after > *" : ":scope > img, :scope > video, :scope > canvas")];
+const zGet = g => zoom.get(g) || { s: 1, x: 0, y: 0 };
+function zSet(g, s, x, y) {
+  const r = g.getBoundingClientRect();
+  s = Math.min(ZMAX, Math.max(1, s));
+  const mx = (s - 1) * r.width / 2, my = (s - 1) * r.height / 2;       // never pan past the picture's edges
+  x = Math.min(mx, Math.max(-mx, x)); y = Math.min(my, Math.max(-my, y));
+  if (s < 1.01) { s = 1; x = 0; y = 0; }
+  zoom.set(g, { s, x, y });
+  zLayers(g).forEach(el => { el.style.transform = s === 1 ? "" : `translate(${x}px, ${y}px) scale(${s})`; });
+  g.classList.toggle("zoomed", s > 1);
+}
+function zAt(g, s2, cx, cy) {                           // zoom to s2 keeping the point under (cx, cy) in place
+  const r = g.getBoundingClientRect(), z = zGet(g), px = cx - (r.left + r.width / 2), py = cy - (r.top + r.height / 2);
+  const k = Math.min(ZMAX, Math.max(1, s2)) / z.s;
+  zSet(g, z.s * k, px - (px - z.x) * k, py - (py - z.y) * k);
+}
+const zReset = g => { zoom.delete(g); zLayers(g).forEach(el => { el.style.transform = ""; }); g.classList.remove("zoomed"); };
+const zLayersAnimate = (g, on) => zLayers(g).forEach(el => { el.style.transition = on ? "transform .3s cubic-bezier(.2,.7,.1,1)" : ""; });
+gallery.addEventListener("wheel", e => {
+  const g = e.target.closest(".g.is-full"); if (!g) return;
+  e.preventDefault();
+  zLayersAnimate(g, false);
+  zAt(g, zGet(g).s * Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0018)), e.clientX, e.clientY);   // ctrl = trackpad pinch
+}, { passive: false });
+gallery.addEventListener("dblclick", e => {
+  const g = e.target.closest(".g.is-full"); if (!g || e.target.closest(".fs-tools")) return;
+  zLayersAnimate(g, true); zAt(g, zGet(g).s > 1 ? 1 : 2.5, e.clientX, e.clientY);
+});
+(() => {
+  const pts = new Map(); let g = null, mode = "", start = null, lastTap = 0, lastX = 0, lastY = 0;
+  const handleNear = (el, x) => { const h = el.querySelector(".cmp-handle"); if (!h) return false; const r = h.getBoundingClientRect(); return Math.abs(x - (r.left + r.width / 2)) < 32; };
+  gallery.addEventListener("pointerdown", e => {
+    const t = e.target.closest(".g.is-full"); if (!t || e.target.closest(".fs-tools")) return;
+    g = t; pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const z = zGet(g); zLayersAnimate(g, false);
+    if (pts.size === 2) {                               // two fingers: pinch
+      const [a, b] = [...pts.values()];
+      mode = "pinch"; start = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, s: z.s, x: z.x, y: z.y, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 };
+    } else if (pts.size === 1) {
+      if (g.classList.contains("compare") && (z.s === 1 || handleNear(g, e.clientX))) { mode = z.s === 1 ? "" : "divider"; }
+      else if (z.s > 1) mode = "pan";
+      else mode = "";
+      start = { px: e.clientX, py: e.clientY, x: z.x, y: z.y };
+      if (mode) { try { g.setPointerCapture(e.pointerId); } catch (_) {} }
+    }
+  });
+  gallery.addEventListener("pointermove", e => {
+    if (!g || !pts.has(e.pointerId)) return;
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (mode === "pinch" && pts.size >= 2) {
+      const [a, b] = [...pts.values()], r = g.getBoundingClientRect();
+      const s = start.s * Math.hypot(a.x - b.x, a.y - b.y) / start.d, k = Math.min(ZMAX, Math.max(1, s)) / start.s;
+      const cx = start.mx - (r.left + r.width / 2), cy = start.my - (r.top + r.height / 2);
+      const mx = (a.x + b.x) / 2 - start.mx, my = (a.y + b.y) / 2 - start.my;   // the two fingers moving together pans
+      zSet(g, start.s * k, cx - (cx - start.x) * k + mx, cy - (cy - start.y) * k + my);
+    } else if (mode === "pan") {
+      zSet(g, zGet(g).s, start.x + e.clientX - start.px, start.y + e.clientY - start.py);
+    } else if (mode === "divider") {
+      const r = g.getBoundingClientRect(), v = Math.max(0, Math.min(100, (e.clientX - r.left) / r.width * 100));
+      g.style.setProperty("--pos", v + "%"); const rg = g.querySelector(".cmp-range"); if (rg) rg.value = v;
+    }
+  });
+  const up = e => {
+    if (!pts.has(e.pointerId)) return;
+    pts.delete(e.pointerId);
+    if (e.type === "pointerup" && e.pointerType !== "mouse" && pts.size === 0 && mode !== "pinch" &&
+        Math.hypot(e.clientX - start.px, e.clientY - start.py) < 10) {   // a still tap: two of them quickly = double-tap zoom
+      const now = performance.now();
+      if (now - lastTap < 320 && Math.hypot(e.clientX - lastX, e.clientY - lastY) < 40 && g) {
+        zLayersAnimate(g, true); zAt(g, zGet(g).s > 1 ? 1 : 2.5, e.clientX, e.clientY); lastTap = 0;
+      } else { lastTap = now; lastX = e.clientX; lastY = e.clientY; }
+    }
+    if (pts.size === 1 && mode === "pinch") {           // one finger lifted: carry on panning with the other
+      const [q] = [...pts.values()], z = zGet(g); mode = z.s > 1 ? "pan" : ""; start = { px: q.x, py: q.y, x: z.x, y: z.y };
+    } else if (pts.size === 0) { mode = ""; }
+  };
+  gallery.addEventListener("pointerup", up);
+  gallery.addEventListener("pointercancel", up);
+  document.addEventListener("gesturestart", e => { if (ov.querySelector(".g.is-full")) e.preventDefault(); });   // iPhone: zoom the picture, not the page
+})();
 function closeProject(clearHash = true) {
   if (ov.hidden || closing) return;
   exitFull();
@@ -689,8 +776,9 @@ function crackShape(k, W) {                               // k: how far the crac
     ptr.classList.toggle("ready", p >= READY);
   };
   addEventListener("touchstart", e => {
+    if (startY !== null && e.touches.length > 1) { startY = null; ptr.classList.add("release"); pull = 0; show(0); return; }   // a second finger: a pinch, not a pull
     startY = null;
-    if (scrollY > 0 || e.touches.length > 1 || document.getElementById("intro") || !ov.hidden || ptr.classList.contains("cracked")) return;
+    if (scrollY > 0 || e.touches.length > 1 || (window.visualViewport && visualViewport.scale > 1.01) || document.getElementById("intro") || !ov.hidden || ptr.classList.contains("cracked")) return;
     startY = e.touches[0].clientY; pull = 0; ptr.classList.remove("release");
   }, { passive: true });
   addEventListener("touchmove", e => {

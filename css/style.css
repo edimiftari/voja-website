@@ -106,7 +106,7 @@ main{overflow-x:clip}   /* tilted and thrown stack cards never cause sideways sc
 .stacks{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:clamp(48px,5vw,72px) clamp(20px,2.4vw,36px); padding-top:40px}
 .stacks[hidden]{display:none}
 .stack{text-decoration:none; color:inherit; display:flex; flex-direction:column; gap:20px; min-width:0; padding-inline:7%}   /* a little smaller than the column */
-.stack .pile{position:relative; z-index:1; aspect-ratio:4/3; touch-action:pan-y; user-select:none; -webkit-user-select:none; cursor:grab; transition:transform .45s cubic-bezier(.2,.7,.1,1)}
+.stack .pile{position:relative; z-index:1; aspect-ratio:4/3; touch-action:pan-y pinch-zoom; user-select:none; -webkit-user-select:none; cursor:grab; transition:transform .45s cubic-bezier(.2,.7,.1,1)}
 /* hovered or being swiped: the pile grows and comes in front of the other categories, so thrown cards fly over them */
 .stack:hover .pile, .stack.lift .pile{transform:scale(1.1); z-index:10}
 .stack .pile:active{cursor:grabbing}
@@ -478,7 +478,7 @@ html, body{overscroll-behavior-y:none}
 .compare .cmp-label{position:absolute; top:14px; z-index:1; font:600 11px/1 var(--body); letter-spacing:.1em; text-transform:uppercase;
   color:#EBEBDF; background:rgba(50,50,50,.72); padding:7px 10px; border-radius:999px; pointer-events:none}
 .compare .cmp-label.l{left:14px} .compare .cmp-label.r{right:14px}
-.compare .cmp-range{position:absolute; inset:0; width:100%; height:100%; margin:0; opacity:0; cursor:ew-resize; touch-action:pan-y}
+.compare .cmp-range{position:absolute; inset:0; width:100%; height:100%; margin:0; opacity:0; cursor:ew-resize; touch-action:pan-y pinch-zoom}
 .compare:has(.cmp-range:focus-visible) .cmp-handle::after{outline:2px solid #fff; outline-offset:3px}
 
 /* ---------- project page swipe: dims the homepage while it drifts away ---------- */
@@ -602,3 +602,9 @@ html, body{overscroll-behavior-y:none}
 /* sliders already use the top-right (label) and bottom-right (speaker) corners, so their buttons sit bottom-left */
 .gallery .g.compare .fs-tools{top:auto; right:auto; bottom:14px; left:14px}
 .gallery .g.compare.is-full .fs-tools{top:auto; right:auto; bottom:max(14px, env(safe-area-inset-bottom, 0px)); left:max(14px, env(safe-area-inset-left, 0px))}
+/* zoom inside full screen (pinch, wheel / trackpad, double-tap): the media layers scale, the frame and slider divider stay put */
+.gallery .g.is-full{touch-action:none; overflow:hidden}
+.gallery .g.is-full img, .gallery .g.is-full video, .gallery .g.is-full canvas{transform-origin:50% 50%; will-change:transform}
+.gallery .g.is-full.zoomed{cursor:grab}
+.gallery .g.is-full.zoomed:active{cursor:grabbing}
+.gallery .g.compare.zoomed .cmp-range{pointer-events:none}   /* zoomed in: drag to look around; the divider is still dragged by its handle */
