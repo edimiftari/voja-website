@@ -210,6 +210,18 @@ footer .top-link{font-size:15px; font-weight:500; text-decoration:none; border-b
 .overlay .bar{position:sticky; top:0; background:var(--parchment); z-index:2}
 .overlay .bar .wrap{display:flex; justify-content:space-between; align-items:center; padding-block:16px; gap:16px}
 .overlay .x{font:600 14px/1 var(--body); background:none; border:1.5px solid var(--ink); color:var(--ink); border-radius:999px; padding:10px 16px; cursor:pointer}
+/* next / previous project: counter with arrows in the bar, big side arrows on computers, sideways swipe on phones */
+.p-pager{display:flex; align-items:center; gap:2px; font:600 13px/1 var(--body); color:var(--muted)}
+.p-pager button{width:36px; height:36px; display:grid; place-items:center; padding:0 0 3px; border-radius:50%; border:1.5px solid var(--rule); background:none; color:var(--ink); font:400 22px/1 var(--body); cursor:pointer; transition:border-color .2s, background .2s, color .2s}
+.p-pager button:hover{border-color:var(--ink); background:var(--ink); color:var(--parchment)}
+.pg-count{min-width:48px; text-align:center; font-variant-numeric:tabular-nums}
+.p-edge{position:fixed; top:50%; z-index:3; width:54px; height:54px; margin-top:-27px; display:grid; place-items:center; padding:0 0 5px; border:0; border-radius:50%;
+  background:rgba(50,50,50,.78); color:#EBEBDF; font:300 32px/1 var(--body); cursor:pointer; box-shadow:0 8px 24px rgba(50,50,50,.18); transition:background .2s, transform .25s}
+.p-edge:hover{background:#E9631A; transform:scale(1.08)}
+.p-edge.pg-prev{left:max(16px, env(safe-area-inset-left, 0px))} .p-edge.pg-next{right:max(16px, env(safe-area-inset-right, 0px))}
+.overlay #p-body{touch-action:pan-y pinch-zoom}
+.overlay.single .p-pager, .overlay.single .p-edge{display:none}
+@media (hover:none){ .p-edge{display:none} }
 .p-head{display:grid; grid-template-columns:repeat(12,1fr); gap:24px; padding-block:40px 32px}
 .p-head .label{grid-column:1 / -1; color:var(--ginger)}
 .p-head h2{grid-column:1 / span 7; font-family:var(--display); font-weight:400; font-size:clamp(38px,5.4vw,80px); line-height:.98; letter-spacing:-.03em; margin:0; text-wrap:balance}
@@ -568,3 +580,25 @@ html, body{overscroll-behavior-y:none}
 .about .portrait:hover img{transform:rotate(-1.5deg) scale(1.015)}
 .about .portrait figcaption{display:flex; justify-content:space-between; align-items:baseline; gap:12px; font-family:var(--display); font-size:18px}
 @media (max-width:900px){ .about .portrait,.about .cols .big,.about .cols .side{grid-column:1 / -1; grid-row:auto} .about .portrait{max-width:420px} .about .cols .side{grid-template-columns:1fr} .about .cols{row-gap:24px} }
+
+/* ---------- full screen for project images, videos and before/after sliders ---------- */
+.gallery .g{position:relative}
+.fs-tools{position:absolute; top:12px; right:12px; z-index:4; display:flex; gap:8px}
+.fs-tools button{width:40px; height:40px; padding:0; display:grid; place-items:center; border:0; border-radius:50%; cursor:pointer;
+  background:rgba(50,50,50,.72); color:#EBEBDF; -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); transition:background .2s, transform .2s}
+.fs-tools button:hover{background:#E9631A; transform:scale(1.06)}
+.fs-tools svg{width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+.fs-tools .fs-rot{display:none}
+.gallery .g.is-full .fs-rot{display:grid}
+.gallery .g.real img{cursor:zoom-in}
+/* in full screen: the piece fills the screen on charcoal, whole (never cropped), in either orientation */
+.gallery .g.is-full{position:fixed; inset:0; z-index:60; width:100% !important; height:100% !important; max-width:none; margin:0;
+  aspect-ratio:auto !important; border-radius:0; background:#1E1E1E; display:flex; align-items:center; justify-content:center}
+.gallery .g.is-full img, .gallery .g.is-full video{width:100%; height:100%; max-width:none; max-height:none; object-fit:contain; border-radius:0; background:none; cursor:default}
+.gallery .g.compare.is-full .cmp-before, .gallery .g.compare.is-full .cmp-after{inset:0}
+.gallery .g.is-full figcaption{position:absolute; left:max(16px, env(safe-area-inset-left, 0px)); bottom:max(16px, env(safe-area-inset-bottom, 0px)); color:rgba(235,235,223,.8)}
+.gallery .g.is-full .fs-tools{top:max(14px, env(safe-area-inset-top, 0px)); right:max(14px, env(safe-area-inset-right, 0px))}
+.gallery .g.is-full .cmp-label{top:max(14px, env(safe-area-inset-top, 0px))}
+/* sliders already use the top-right (label) and bottom-right (speaker) corners, so their buttons sit bottom-left */
+.gallery .g.compare .fs-tools{top:auto; right:auto; bottom:14px; left:14px}
+.gallery .g.compare.is-full .fs-tools{top:auto; right:auto; bottom:max(14px, env(safe-area-inset-bottom, 0px)); left:max(14px, env(safe-area-inset-left, 0px))}

@@ -425,6 +425,7 @@ function openProject(id) {
     if (im) { if (im.naturalWidth || im.videoWidth) shape(); else im.addEventListener(im.tagName === "VIDEO" ? "loadedmetadata" : "load", shape, { once: true }); }
     syncCompare(el);
   });
+  addFsTools(gal);
   // more projects: previous / next in the same category, plus a jump to each other category
   const same = PROJECTS.filter(q => q.category === p.category), k = same.indexOf(p);
   const c = esc(p.category), cSq = esc(SQ[p.category] || p.category);
@@ -443,10 +444,135 @@ function openProject(id) {
   ov.hidden = false; ov.scrollTop = 0; document.body.style.overflow = "hidden";
   if (fresh && booted) swipeIn();
   requestAnimationFrame(() => gal.querySelectorAll("canvas").forEach((cv, k) => paint(cv, p.placeholder, cv.dataset.v ? +cv.dataset.v : k)));
+  updatePager();
   document.getElementById("close").focus({ preventScroll: true });
 }
+
+/* ---------- next / previous project (same category, wrapping round) ----------
+   phones: swipe the page sideways; computers: the big side arrows or the ← → keys; both: the ‹ 2 / 7 › counter in the bar */
+const pBody = document.getElementById("p-body"), pCount = document.getElementById("p-count");
+const sameCat = () => { const p = PROJECTS.find(q => q.id === currentId); return p ? PROJECTS.filter(q => q.category === p.category) : []; };
+function updatePager() {
+  const l = sameCat(), k = l.findIndex(q => q.id === currentId);
+  ov.classList.toggle("single", l.length < 2);         // only one project in the category: no arrows
+  pCount.textContent = l.length > 1 ? `${k + 1} / ${l.length}` : "";
+}
+let stepping = false;
+function stepProject(dir, fromX = 0) {                  // dir 1 = next, -1 = previous; fromX = where a swipe let go
+  const l = sameCat();
+  if (l.length < 2 || stepping || closing) return;
+  stepping = true;
+  const q = l[(l.findIndex(x => x.id === currentId) + dir + l.length) % l.length], w = ov.clientWidth;
+  pBody.style.transform = ""; pBody.style.opacity = "";
+  // the page slides out to one side, the next project slides in from the other
+  pBody.animate([{ transform: `translateX(${fromX}px)`, opacity: Math.max(0.4, 1 - Math.abs(fromX) / w) },
+                 { transform: `translateX(${-dir * w * 0.4}px)`, opacity: 0 }], { duration: 200, easing: "cubic-bezier(.5,0,.9,.6)" })
+    .finished.then(() => {
+      history.replaceState(null, "", "#p-" + q.id);
+      openProject(q.id);
+      return pBody.animate([{ transform: `translateX(${dir * w * 0.4}px)`, opacity: 0 }, { transform: "none", opacity: 1 }],
+        { duration: 460, easing: "cubic-bezier(.2,.7,.1,1)" }).finished;
+    }).then(() => { stepping = false; }, () => { stepping = false; });
+}
+ov.querySelectorAll(".pg-prev").forEach(b => b.addEventListener("click", () => stepProject(-1)));
+ov.querySelectorAll(".pg-next").forEach(b => b.addEventListener("click", () => stepProject(1)));
+addEventListener("keydown", e => {
+  if (ov.hidden || closing || ov.querySelector(".g.is-full") || (e.key !== "ArrowLeft" && e.key !== "ArrowRight")) return;
+  if (e.target.closest && e.target.closest("input, textarea, select, .compare")) return;   // the before/after slider uses the arrows itself
+  e.preventDefault(); stepProject(e.key === "ArrowRight" ? 1 : -1);
+});
+// phone swipe: the page follows the finger sideways; let go past a quarter of the screen (or flick) for the next / previous one
+(() => {
+  let x0 = 0, y0 = 0, dx = 0, id = null, on = false, vx = 0, lx = 0, lt = 0;
+  pBody.addEventListener("pointerdown", e => {
+    if (e.pointerType === "mouse" || stepping || ov.classList.contains("single")) return;
+    if (e.target.closest(".compare, iframe, .embed, video[controls], .is-full")) return;   // sliders and players keep their own sideways drags
+    id = e.pointerId; x0 = lx = e.clientX; y0 = e.clientY; dx = vx = 0; on = false; lt = performance.now();
+  });
+  pBody.addEventListener("pointermove", e => {
+    if (e.pointerId !== id) return;
+    const ddx = e.clientX - x0, ddy = e.clientY - y0;
+    if (!on) {
+      if (Math.abs(ddy) > 10 && Math.abs(ddy) > Math.abs(ddx)) { id = null; return; }   // scrolling the page
+      if (Math.abs(ddx) < 10) return;
+      on = true; try { pBody.setPointerCapture(id); } catch (_) {}
+    }
+    const t = performance.now();
+    if (t > lt) { vx = vx * 0.6 + ((e.clientX - lx) / (t - lt)) * 0.4; lx = e.clientX; lt = t; }
+    dx = ddx;
+    pBody.style.transform = `translateX(${dx * 0.85}px)`;
+    pBody.style.opacity = String(Math.max(0.4, 1 - Math.abs(dx) / ov.clientWidth));
+  });
+  const end = e => {
+    if (e.pointerId !== id) return;
+    id = null;
+    if (!on) return;
+    on = false;
+    const flick = Math.abs(vx) > 0.5 && Math.sign(vx) === Math.sign(dx);
+    if (Math.abs(dx) > ov.clientWidth * 0.25 || (flick && Math.abs(dx) > 40)) return stepProject(dx < 0 ? 1 : -1, dx * 0.85);
+    const from = pBody.style.transform, op = pBody.style.opacity;   // not far enough: spring back
+    pBody.style.transform = ""; pBody.style.opacity = "";
+    pBody.animate([{ transform: from, opacity: op }, { transform: "none", opacity: 1 }], { duration: 380, easing: "cubic-bezier(.2,.7,.1,1)" });
+  };
+  pBody.addEventListener("pointerup", end);
+  pBody.addEventListener("pointercancel", end);
+})();
+
+/* ---------- full screen for project images, videos and before/after sliders ----------
+   A button in each corner (or a click on an image). Uses the browser's real full screen where it can; iPhones only allow
+   that for videos, so there the piece fills the browser window instead. On Android, wide media turns the screen to
+   landscape and a rotate button flips between portrait and landscape; elsewhere turning the device just re-fits it. */
+const FS_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>`;
+const FS_EXIT = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>`;
+const ROT_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.4-5.7M20 4v4h-4"/></svg>`;
+const canRotate = !!(screen.orientation && screen.orientation.lock) && matchMedia("(hover: none)").matches;
+const gallery = document.getElementById("p-gallery");
+const nativeFull = () => document.fullscreenElement || document.webkitFullscreenElement;
+function addFsTools(root) {
+  root.querySelectorAll(".g.real, .g.compare").forEach(g => {
+    const t = document.createElement("div"); t.className = "fs-tools";
+    t.innerHTML = (canRotate ? `<button type="button" class="fs-rot" aria-label="Rotate">${ROT_ICON}</button>` : "") +
+      `<button type="button" class="fs-btn" aria-label="Full screen">${FS_ICON}</button>`;
+    g.appendChild(t);
+  });
+}
+const setFsBtn = (g, on) => { const b = g.querySelector(".fs-btn"); if (b) { b.innerHTML = on ? FS_EXIT : FS_ICON; b.setAttribute("aria-label", on ? "Exit full screen" : "Full screen"); } };
+function lockTo(g, want) {
+  if (!canRotate || !nativeFull()) return;             // phones only allow turning the screen while in real full screen
+  const m = g.querySelector(".cmp-after img, .cmp-after video, img, video");
+  const w = m && (m.naturalWidth || m.videoWidth), h = m && (m.naturalHeight || m.videoHeight);
+  screen.orientation.lock(want || (w && h && h > w ? "portrait" : "landscape")).catch(() => {});
+}
+function enterFull(g) {
+  if (g.classList.contains("is-full")) return;
+  const on = () => { g.classList.add("is-full"); setFsBtn(g, true); lockTo(g); };
+  const fake = () => { g.classList.add("fake-full"); on(); };
+  const req = g.requestFullscreen || g.webkitRequestFullscreen;
+  if (!req) return fake();
+  try { const r = req.call(g); if (r && r.then) r.then(on, fake); else on(); } catch (_) { fake(); }
+}
+function tidyFull(g) {
+  g.classList.remove("is-full", "fake-full"); setFsBtn(g, false);
+  try { screen.orientation.unlock(); } catch (_) {}
+}
+function exitFull() {
+  const g = ov.querySelector(".g.is-full"); if (!g) return;
+  if (nativeFull()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);   // the change event tidies up
+  else tidyFull(g);
+}
+["fullscreenchange", "webkitfullscreenchange"].forEach(ev => document.addEventListener(ev, () => {
+  if (!nativeFull()) { const g = ov.querySelector(".g.is-full:not(.fake-full)"); if (g) tidyFull(g); }
+}));
+gallery.addEventListener("click", e => {
+  const b = e.target.closest(".fs-btn"), r = e.target.closest(".fs-rot");
+  if (b) { const g = b.closest(".g"); return g.classList.contains("is-full") ? exitFull() : enterFull(g); }
+  if (r) { const g = r.closest(".g"); return lockTo(g, (screen.orientation.type || "").startsWith("landscape") ? "portrait" : "landscape"); }
+  const img = e.target.closest(".g.real img");          // tapping an image opens it full screen too
+  if (img && !img.closest(".is-full")) enterFull(img.closest(".g"));
+});
 function closeProject(clearHash = true) {
   if (ov.hidden || closing) return;
+  exitFull();
   const finish = () => {
     ov.hidden = true; document.body.style.overflow = ""; currentId = null; closing = false;
     document.title = defaultTitle();
@@ -522,7 +648,7 @@ function route() {
   else if (!h || h === "work" || h === "top") showCat(null);   // other links (About, Contact...) leave the work section as it is
 }
 document.getElementById("close").onclick = () => closeProject();
-addEventListener("keydown", e => { if (e.key === "Escape") closeProject(); });
+addEventListener("keydown", e => { if (e.key !== "Escape") return; if (ov.querySelector(".g.fake-full")) return exitFull(); closeProject(); });
 addEventListener("hashchange", route);
 
 /* ---------- egg crack line: thick where it started, tapering to a sharp point at the tip that is moving ---------- */
