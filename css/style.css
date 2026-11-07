@@ -103,7 +103,7 @@ section{scroll-margin-top:80px}
 
 /* ---------- work stacks: one pile of covers per category; hover fans the pile open ---------- */
 main{overflow-x:clip}   /* tilted and thrown stack cards never cause sideways scrolling (clipped at the screen edge, not the section) */
-.stacks{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:clamp(36px,4vw,56px) clamp(20px,2.4vw,36px); padding-top:14px}
+.stacks{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:clamp(48px,5vw,72px) clamp(20px,2.4vw,36px); padding-top:40px}
 .stacks[hidden]{display:none}
 .stack{text-decoration:none; color:inherit; display:flex; flex-direction:column; gap:20px; min-width:0; padding-inline:7%}   /* a little smaller than the column */
 .stack .pile{position:relative; z-index:1; aspect-ratio:4/3; touch-action:pan-y; user-select:none; -webkit-user-select:none; cursor:grab; transition:transform .45s cubic-bezier(.2,.7,.1,1)}
@@ -111,28 +111,33 @@ main{overflow-x:clip}   /* tilted and thrown stack cards never cause sideways sc
 .stack:hover .pile, .stack.lift .pile{transform:scale(1.1); z-index:10}
 .stack .pile:active{cursor:grabbing}
 .stack .sheet{position:absolute; inset:0; border-radius:18px; overflow:hidden; background:var(--sheet);
-  box-shadow:0 12px 30px -12px rgba(50,50,50,.28); transition:transform .55s cubic-bezier(.2,.7,.1,1), opacity .4s}
+  box-shadow:0 12px 30px -12px rgba(50,50,50,.28); transition:transform .7s cubic-bezier(.2,.7,.1,1), opacity .5s}
 .stack .sheet img, .stack .sheet video{-webkit-user-drag:none; pointer-events:none}
 .stack .s1, .stack .s2{will-change:transform}
 .stack .sheet.drag{transition:none}                                   /* follows the finger exactly */
 .stack .sheet.fly{z-index:5; opacity:1; transition:transform .34s cubic-bezier(.25,.6,.35,1)}  /* thrown off the pile, stays on top until it's gone */
 /* the stacks keep their motion even when the computer asks for reduced motion (like the egg and the seal) */
 @media (prefers-reduced-motion:reduce){
-  .stack .sheet{transition:transform .55s cubic-bezier(.2,.7,.1,1), opacity .4s!important}
+  .stack .sheet{transition:transform .7s cubic-bezier(.2,.7,.1,1), opacity .5s!important}
   .stack .sheet.drag{transition:none!important}
   .stack .sheet.fly{transition:transform .34s cubic-bezier(.25,.6,.35,1)!important}
+  .stack .s2{transition-delay:.1s!important} .stack .s3, .stack .s4{transition-delay:.2s!important}
+  .stack .sheet.drag, .stack .sheet.fly{transition-delay:0s!important}
   .stack .view{transition:.3s!important}
   .stack .pile{transition:transform .45s cubic-bezier(.2,.7,.1,1)!important}
 }
 .stack .sheet img, .stack .sheet video, .stack .sheet canvas{width:100%; height:100%; object-fit:cover; display:block}
 .stack .sheet.blank{background:#E2E2D6; border:1px solid var(--rule)}
 .stack .s1{z-index:3}
-.stack .s2{z-index:2; transform:translate(-2.5%,-4%) rotate(-3deg)}
-.stack .s3{z-index:1; transform:translate(3%,-6.5%) rotate(3.5deg)}
-.stack .s4{z-index:0; opacity:0; transform:translate(3%,-6.5%) rotate(3.5deg)}   /* further down the pile, out of sight */
-.stack:hover .s1, .stack:focus-visible .s1{transform:translateY(-6px) rotate(-1deg)}
-.stack:hover .s2, .stack:focus-visible .s2{transform:translate(-9%,-6%) rotate(-7deg)}
-.stack:hover .s3, .stack:focus-visible .s3{transform:translate(9%,-9%) rotate(7deg)}
+.stack .s2{z-index:2; transform:translateY(-8.5%) scale(.93)}   /* a neat deck: the cards behind sit straight, centred, peeking out above */
+.stack .s3{z-index:1; transform:translateY(-17%) scale(.86)}
+.stack .s4{z-index:0; opacity:0; transform:translateY(-17%) scale(.86)}   /* further down the pile, out of sight */
+.stack:hover .s1, .stack:focus-visible .s1{transform:translateY(-8px)}   /* hover: the deck spreads a little further, still in line */
+.stack:hover .s2, .stack:focus-visible .s2{transform:translateY(-13.5%) scale(.93)}
+.stack:hover .s3, .stack:focus-visible .s3{transform:translateY(-26%) scale(.86)}
+/* the deck always moves as a ripple from the front card: the ones behind follow a beat later */
+.stack .s2{transition-delay:.1s} .stack .s3, .stack .s4{transition-delay:.2s}
+.stack .sheet.drag, .stack .sheet.fly{transition-delay:0s}
 .stack .view{position:absolute; z-index:4; right:14px; bottom:14px; font-size:13px; font-weight:600; background:var(--parchment); color:var(--ink);
   border-radius:999px; padding:7px 13px; opacity:0; transform:translateY(6px); transition:.3s}
 .stack:hover .view, .stack:focus-visible .view{opacity:1; transform:none}

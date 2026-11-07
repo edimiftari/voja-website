@@ -277,7 +277,7 @@ stacks.querySelectorAll(".stack").forEach(stack => {
   place();
   // while dragging, the cover follows the pointer (drawn once per screen frame) and the card under it rises to take its place
   const dragPose = d => `translate(${d}px, ${-Math.abs(d) * 0.04}px) rotate(${d * 0.05}deg)`;
-  const risePose = p => `translate(${-2.5 * (1 - p)}%, ${-4 * (1 - p)}%) rotate(${-3 * (1 - p)}deg)`;   // s2 -> s1
+  const risePose = p => `translateY(${-8.5 * (1 - p)}%) scale(${0.93 + 0.07 * p})`;   // s2 -> s1
   let frame = 0;
   const draw = () => {
     frame = 0;
